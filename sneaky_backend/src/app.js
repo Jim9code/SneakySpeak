@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 
-// Absolute minimal health check - must be first
+// Absolute minimal health check - must be first and completely independent
 app.get('/health', (_, res) => res.send('OK'));
 
 // Now load everything else
@@ -17,10 +17,11 @@ const sequelize = require('./config/database');
 // Load environment variables
 dotenv.config();
 
-// Verify JWT_SECRET is available
-if (!process.env.JWT_SECRET) {
-    console.error('JWT_SECRET is not set in environment variables');
-    process.exit(1);
+// Log missing environment variables but don't exit
+const requiredEnvVars = ['JWT_SECRET', 'FRONTEND_URL', 'DATABASE_URL'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+if (missingEnvVars.length > 0) {
+    console.warn('Warning: Missing environment variables:', missingEnvVars.join(', '));
 }
 
 // Trust proxy - important for Railway
@@ -34,11 +35,34 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Routes
-app.use('/api/messages', messageRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/payment', paymentRoutes);
+// Routes with environment variable checks
+app.use('/api/messages', (req, res, next) => {
+    if (!process.env.JWT_SECRET) {
+        return res.status(503).json({ message: 'Service not fully configured' });
+    }
+    next();
+}, messageRoutes);
+
+app.use('/api/auth', (req, res, next) => {
+    if (!process.env.JWT_SECRET) {
+        return res.status(503).json({ message: 'Service not fully configured' });
+    }
+    next();
+}, authRoutes);
+
+app.use('/api/upload', (req, res, next) => {
+    if (!process.env.JWT_SECRET) {
+        return res.status(503).json({ message: 'Service not fully configured' });
+    }
+    next();
+}, uploadRoutes);
+
+app.use('/api/payment', (req, res, next) => {
+    if (!process.env.JWT_SECRET || !process.env.PAYSTACK_SECRET_KEY) {
+        return res.status(503).json({ message: 'Service not fully configured' });
+    }
+    next();
+}, paymentRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
