@@ -5,10 +5,11 @@ buildCommand = "npm install"
 [deploy]
 startCommand = "npm start"
 healthcheckPath = "/health"
-healthcheckTimeout = 10
-healthcheckInterval = 30
+healthcheckTimeout = 5
+healthcheckInterval = 15
 restartPolicy = "on-failure"
 numReplicas = 1
+healthcheckProtocol = "http"
 
 [variables]
 NODE_ENV = "production"

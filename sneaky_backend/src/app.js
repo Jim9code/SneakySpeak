@@ -14,9 +14,17 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
-// Health check endpoint - must be before any middleware
-app.get('/health', (req, res) => {
-  res.status(200).send('OK');
+// Basic application-level middleware
+app.use(express.json());
+
+// Railway health check endpoint - must be first
+app.get('/health', (_req, res) => {
+  // Railway expects a 200 status code
+  res.writeHead(200, {
+    'Content-Type': 'text/plain',
+    'Connection': 'keep-alive'
+  });
+  res.end('OK');
 });
 
 // Verify JWT_SECRET is available
@@ -33,7 +41,6 @@ app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true // Important for cookies
 }));
-app.use(express.json());
 app.use(cookieParser());
 
 // Routes
