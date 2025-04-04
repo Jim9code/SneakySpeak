@@ -10,13 +10,14 @@ function getDatabaseUrl() {
 
     // We're in local development, construct URL from individual vars
     if (!process.env.DB_NAME || !process.env.DB_USER) {
-        console.error('Database configuration missing in environment variables');
-        process.exit(1);
+        console.warn('Database configuration missing in environment variables');
+        return null;
     }
 
     return `mysql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST || 'localhost'}/${process.env.DB_NAME}`;
 }
 
+// Create the Sequelize instance
 const sequelize = process.env.DATABASE_URL 
     ? new Sequelize(process.env.DATABASE_URL, {
         dialect: 'mysql',
@@ -49,8 +50,8 @@ const sequelize = process.env.DATABASE_URL
         }
     });
 
-// Test the connection
-async function testConnection() {
+// Initialize database connection
+const initializeDatabase = async () => {
     try {
         await sequelize.authenticate();
         console.log('Database connection established successfully.');
@@ -58,15 +59,14 @@ async function testConnection() {
         // Sync all models with existing tables (don't recreate tables)
         await sequelize.sync({ alter: false });
         console.log('Database models synchronized successfully.');
+        return true;
     } catch (error) {
         console.error('Unable to connect to the database:', error);
-        throw error;
+        return false;
     }
-}
+};
 
-// Only test connection if not in test environment
-if (process.env.NODE_ENV !== 'test') {
-    testConnection();
-}
-
-module.exports = sequelize; 
+// Export the sequelize instance as default export
+module.exports = sequelize;
+// Also export the initialization function
+module.exports.initializeDatabase = initializeDatabase; 

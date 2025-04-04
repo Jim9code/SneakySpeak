@@ -1,5 +1,5 @@
 const { createServer } = require('http');
-const { app, initDatabase } = require('./src/app.js');
+const { app, initializeDatabase } = require('./src/app.js');
 const { initializeSocket } = require('./src/services/socketService.js');
 const dotenv = require('dotenv');
 
@@ -15,8 +15,11 @@ initializeSocket(httpServer);
 // Initialize database and start server
 const PORT = process.env.PORT || 3000;
 
-initDatabase().then(() => {
+initializeDatabase().then(() => {
   httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
+}).catch(error => {
+  console.error('Failed to initialize database:', error);
+  process.exit(1);
 });

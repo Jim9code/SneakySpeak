@@ -7,18 +7,21 @@ app.get('/health', (_, res) => res.send('OK'));
 // Now load everything else
 const cors = require('cors');
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
+const sequelize = require('./config/database');
+const { initializeDatabase } = sequelize;
+
+// Load routes after database is initialized
 const messageRoutes = require('./routes/messageRoutes.js');
 const uploadRoutes = require('./routes/uploadRoutes.js');
-const cookieParser = require('cookie-parser');
 const authRoutes = require('./routes/authRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
-const sequelize = require('./config/database');
 
 // Load environment variables
 dotenv.config();
 
 // Log missing environment variables but don't exit
-const requiredEnvVars = ['JWT_SECRET', 'FRONTEND_URL', 'DATABASE_URL'];
+const requiredEnvVars = ['JWT_SECRET', 'FRONTEND_URL'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 if (missingEnvVars.length > 0) {
     console.warn('Warning: Missing environment variables:', missingEnvVars.join(', '));
@@ -34,6 +37,16 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Database status endpoint
+app.get('/api/health', async (req, res) => {
+    try {
+        await sequelize.authenticate();
+        res.json({ status: 'healthy', database: 'connected' });
+    } catch (error) {
+        res.status(503).json({ status: 'unhealthy', error: error.message });
+    }
+});
 
 // Routes with environment variable checks
 app.use('/api/messages', (req, res, next) => {
@@ -70,19 +83,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something broke!' });
 });
 
-// Initialize database connection
-const initDatabase = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('Database connection established successfully.');
-    
-    // Sync all models with existing tables
-    await sequelize.sync({ alter: false });
-    console.log('Database models synchronized successfully.');
-  } catch (error) {
-    console.error('Error initializing database:', error);
-    throw error;
-  }
-};
-
-module.exports = { app, initDatabase }; 
+module.exports = { app, initializeDatabase }; 
