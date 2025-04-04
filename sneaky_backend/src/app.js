@@ -30,13 +30,28 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/messages', messageRoutes);
-app.use('/api/upload', uploadRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
 app.use('/api/payment', paymentRoutes);
 
 // Health check endpoint for Railway
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy' });
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    await sequelize.authenticate();
+    res.status(200).json({ 
+      status: 'healthy',
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(500).json({ 
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Error handling middleware
