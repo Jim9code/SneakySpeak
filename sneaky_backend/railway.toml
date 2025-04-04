@@ -3,13 +3,12 @@ builder = "nixpacks"
 buildCommand = "npm install"
 
 [deploy]
-startCommand = "npm start"
+startCommand = "node src/server.js"
 healthcheckPath = "/health"
-healthcheckTimeout = 5
-healthcheckInterval = 15
+healthcheckTimeout = 3
+healthcheckInterval = 10
 restartPolicy = "on-failure"
 numReplicas = 1
-healthcheckProtocol = "http"
 
 [variables]
 NODE_ENV = "production"

@@ -1,4 +1,10 @@
 const express = require('express');
+const app = express();
+
+// Absolute minimal health check - must be first
+app.get('/health', (_, res) => res.send('OK'));
+
+// Now load everything else
 const cors = require('cors');
 const dotenv = require('dotenv');
 const messageRoutes = require('./routes/messageRoutes.js');
@@ -10,12 +16,6 @@ const sequelize = require('./config/database');
 
 // Load environment variables
 dotenv.config();
-
-// Initialize Express app
-const app = express();
-
-// Railway health check endpoint - MUST BE FIRST, before ANY middleware
-app.get('/health', (req, res) => res.sendStatus(200));
 
 // Verify JWT_SECRET is available
 if (!process.env.JWT_SECRET) {
@@ -57,7 +57,7 @@ const initDatabase = async () => {
     console.log('Database models synchronized successfully.');
   } catch (error) {
     console.error('Error initializing database:', error);
-    throw error; // Let the server handle the error
+    throw error;
   }
 };
 
