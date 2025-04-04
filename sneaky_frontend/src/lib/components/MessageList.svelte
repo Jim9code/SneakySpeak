@@ -65,7 +65,7 @@
             <div class="flex-1 flex {isOwnMessage(message) ? 'justify-end' : 'justify-start'} w-full">
               <div class="max-w-[85%] {isOwnMessage(message) ? 'ml-auto' : 'mr-auto'}">
                 <div class="flex flex-col {isOwnMessage(message) ? 'items-end' : 'items-start'}">
-                  <span class="text-xs text-gray-500 mb-1 {isOwnMessage(message) ? 'text-right' : 'text-left'} w-full">
+                  <span class="text-sm text-gray-500 mb-1 {isOwnMessage(message) ? 'text-right' : 'text-left'} w-full">
                     {message.isAnonymous ? 'Anonymous' : message.sender} • {formatTime(message.timestamp)}
                   </span>
                   <div class="rounded-lg p-3 sm:p-4 {isOwnMessage(message) ? 'bg-blue-500 text-white shadow-blue-200/50' : 'bg-white/80 backdrop-blur-sm border border-gray-100 text-gray-900'} {message.type === 'meme' ? 'overflow-hidden' : ''} shadow-lg hover:shadow-xl transition-shadow">

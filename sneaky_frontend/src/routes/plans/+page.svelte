@@ -134,6 +134,28 @@
     }
   }
 
+  async function retryVerification(reference: string, coins: number, maxRetries = 3) {
+    // Initial delay to allow Paystack to process
+    await new Promise(resolve => setTimeout(resolve, 10000));
+    
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        addLog(`Attempt ${i + 1} of ${maxRetries} to verify payment...`);
+        await verifyPayment(reference, coins);
+        addLog('Verification successful!');
+        return; // If successful, exit the function
+      } catch (err) {
+        if (i === maxRetries - 1) {
+          addLog('All verification attempts failed');
+          throw err; // Throw on last retry
+        }
+        addLog(`Retry ${i + 1} failed, waiting before next attempt...`);
+        // Wait longer between each retry (15s, 20s, 25s)
+        await new Promise(resolve => setTimeout(resolve, 15000 + (i * 5000)));
+      }
+    }
+  }
+
   function handlePurchase(package_: typeof COIN_PACKAGES[0]) {
     if (loading) return;
 
@@ -143,26 +165,59 @@
       return;
     }
 
+    // Generate a unique reference using only alphanumeric characters
+    const timestamp = Date.now();
+    const userId = auth.user.id;
+    const random = Math.random().toString(36).substring(2, 8);
+    const reference = `PAY${timestamp}${userId}${random}`;
+    addLog(`Generated payment reference: ${reference}`);
+
     const handler = PaystackPop.setup({
       key: PUBLIC_PAYSTACK_KEY,
       email: auth.user.email,
       amount: package_.price * 100, // Convert to kobo
       currency: 'NGN',
-      ref: `coins_${Date.now()}_${auth.user.id}`,
+      ref: reference,
       metadata: {
         coins: package_.coins,
-        user_id: auth.user.id
+        user_id: auth.user.id,
+        custom_fields: [
+          {
+            display_name: "Coins Amount",
+            variable_name: "coins_amount",
+            value: package_.coins
+          }
+        ]
       },
-      callback: function(response: any) {
-        addLog(`Paystack callback: ${JSON.stringify(response, null, 2)}`);
-        verifyPayment(response.reference, package_.coins);
+      callback: function(response: { reference: string; status: string }) {
+        addLog(`Paystack callback received: ${JSON.stringify(response, null, 2)}`);
+        
+        if (response.status !== 'success') {
+          error = 'Payment was not successful';
+          return;
+        }
+        
+        // Verify that the reference matches
+        if (response.reference !== reference) {
+          addLog(`Reference mismatch! Expected: ${reference}, Got: ${response.reference}`);
+          error = 'Payment verification failed: reference mismatch';
+          return;
+        }
+        
+        // Start verification process
+        retryVerification(response.reference, package_.coins).catch((err) => {
+          error = err.message || 'Failed to verify payment after multiple attempts';
+        });
       },
       onClose: function() {
+        addLog('Payment dialog closed');
         if (loading) {
           error = 'Please wait while we verify your payment';
         }
       }
     });
+
+    addLog(`Opening Paystack payment frame for ${package_.coins} coins (₦${package_.price})`);
     handler.openIframe();
   }
 
