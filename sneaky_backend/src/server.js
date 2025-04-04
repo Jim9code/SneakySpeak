@@ -12,20 +12,35 @@ const PORT = process.env.PORT || 3000;
 
 // Initialize database and start server
 async function startServer() {
-    try {
-        // Initialize database first
-        await initDatabase();
+    let retries = 5;
+    
+    while (retries > 0) {
+        try {
+            // Initialize database first
+            await initDatabase();
 
-        // Start server
-        httpServer.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-            console.log('Environment:', process.env.NODE_ENV);
-            console.log('Frontend URL:', process.env.FRONTEND_URL);
-            console.log('Database initialized and connected');
-        });
-    } catch (error) {
-        console.error('Unable to start server:', error);
-        process.exit(1);
+            // Start server
+            httpServer.listen(PORT, () => {
+                console.log(`Server running on port ${PORT}`);
+                console.log('Environment:', process.env.NODE_ENV);
+                console.log('Frontend URL:', process.env.FRONTEND_URL);
+                console.log('Database initialized and connected');
+            });
+            
+            // If we get here, everything worked
+            return;
+        } catch (error) {
+            retries -= 1;
+            console.error(`Failed to start server (${retries} retries left):`, error);
+            
+            if (retries === 0) {
+                console.error('No more retries left, exiting...');
+                process.exit(1);
+            }
+            
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
     }
 }
 
@@ -39,6 +54,23 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (error) => {
     console.error('Unhandled Rejection:', error);
     process.exit(1);
+});
+
+// Handle termination signals
+process.on('SIGTERM', () => {
+    console.log('Received SIGTERM, shutting down gracefully');
+    httpServer.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('Received SIGINT, shutting down gracefully');
+    httpServer.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
 });
 
 startServer(); 

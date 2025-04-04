@@ -11,22 +11,22 @@ const sequelize = require('./config/database');
 // Load environment variables
 dotenv.config();
 
+// Initialize Express app
+const app = express();
+
+// Health check endpoint - must be before any middleware
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // Verify JWT_SECRET is available
 if (!process.env.JWT_SECRET) {
     console.error('JWT_SECRET is not set in environment variables');
     process.exit(1);
 }
 
-// Initialize Express app
-const app = express();
-
 // Trust proxy - important for Railway
 app.set('trust proxy', 1);
-
-// Basic health check that doesn't require database
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
 
 // Middleware
 app.use(cors({
@@ -35,27 +35,6 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-
-// Full health check endpoint for Railway
-app.get('/api/health', async (req, res) => {
-  try {
-    // Test database connection
-    await sequelize.authenticate();
-    res.status(200).json({ 
-      status: 'healthy',
-      database: 'connected',
-      environment: process.env.NODE_ENV,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Health check failed:', error);
-    res.status(503).json({ 
-      status: 'unhealthy',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
 
 // Routes
 app.use('/api/messages', messageRoutes);
