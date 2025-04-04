@@ -20,6 +20,14 @@ if (!process.env.JWT_SECRET) {
 // Initialize Express app
 const app = express();
 
+// Trust proxy - important for Railway
+app.set('trust proxy', 1);
+
+// Basic health check that doesn't require database
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // Middleware
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -28,13 +36,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Routes
-app.use('/api/messages', messageRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/payment', paymentRoutes);
-
-// Health check endpoint for Railway
+// Full health check endpoint for Railway
 app.get('/api/health', async (req, res) => {
   try {
     // Test database connection
@@ -42,17 +44,24 @@ app.get('/api/health', async (req, res) => {
     res.status(200).json({ 
       status: 'healthy',
       database: 'connected',
+      environment: process.env.NODE_ENV,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error('Health check failed:', error);
-    res.status(500).json({ 
+    res.status(503).json({ 
       status: 'unhealthy',
       error: error.message,
       timestamp: new Date().toISOString()
     });
   }
 });
+
+// Routes
+app.use('/api/messages', messageRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -71,7 +80,7 @@ const initDatabase = async () => {
     console.log('Database models synchronized successfully.');
   } catch (error) {
     console.error('Error initializing database:', error);
-    process.exit(1);
+    throw error; // Let the server handle the error
   }
 };
 

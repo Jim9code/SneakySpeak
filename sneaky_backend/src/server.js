@@ -1,28 +1,12 @@
 require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
 const { createServer } = require('http');
 const { initializeSocket } = require('./services/socketService');
-const authRoutes = require('./routes/authRoutes');
-const uploadRoutes = require('./routes/uploadRoutes');
 const { app, initDatabase } = require('./app');
 
 const httpServer = createServer(app);
 
 // Initialize Socket.IO
 const io = initializeSocket(httpServer);
-
-// Middleware
-app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true
-}));
-app.use(express.json());
-app.set('trust proxy',1)
-
-// Routes
-app.use('/auth', authRoutes);
-app.use('/upload', uploadRoutes);
 
 const PORT = process.env.PORT || 3000;
 
@@ -35,11 +19,26 @@ async function startServer() {
         // Start server
         httpServer.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
+            console.log('Environment:', process.env.NODE_ENV);
+            console.log('Frontend URL:', process.env.FRONTEND_URL);
+            console.log('Database initialized and connected');
         });
     } catch (error) {
         console.error('Unable to start server:', error);
         process.exit(1);
     }
 }
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled Rejection:', error);
+    process.exit(1);
+});
 
 startServer(); 
