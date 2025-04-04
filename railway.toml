@@ -1,0 +1,13 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "cd sneaky_backend && npm install"
+
+[deploy]
+startCommand = "cd sneaky_backend && node server.js"
+healthcheckPath = "/health"
+healthcheckTimeout = 10
+restartPolicyType = "never"
+numReplicas = 1
+
+[service]
+autoDeploy = false 
