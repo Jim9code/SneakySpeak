@@ -224,8 +224,8 @@
           <div class="flex-1 overflow-y-auto min-h-0 pb-[100px] sm:pb-[120px]">
             <MessageList {messages} />
           </div>
-          <div class="fixed bottom-0 left-0 right-0 bg-gray-50 p-2 sm:p-4 border-t border-gray-100">
-            <div class="max-w-7xl mx-auto">
+          <div class="fixed bottom-0 left-0 right-0 bg-gray-50 p-2 sm:p-4 border-t border-gray-100 shadow-lg z-40">
+            <div class="max-w-7xl mx-auto w-full">
               <MessageInput 
                 {isAnonymous}
                 {coins}
@@ -254,5 +254,10 @@
     height: 100%;
     margin: 0;
     padding: 0;
+    overflow: hidden;
+  }
+
+  main {
+    height: calc(100vh - 4rem); /* Adjust for header height */
   }
 </style> 

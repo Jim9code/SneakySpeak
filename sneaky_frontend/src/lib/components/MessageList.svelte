@@ -72,7 +72,7 @@
   });
 </script>
 
-<div class="chat-container relative flex flex-col h-[calc(100vh-4rem)]">
+<div class="chat-container relative">
   <!-- Animated background elements -->
   <div class="fixed inset-0 bg-gradient-to-br from-gray-50 to-white overflow-hidden pointer-events-none z-0">
     <div class="absolute inset-0 bg-grid opacity-10"></div>
@@ -93,8 +93,7 @@
   <!-- Messages content -->
   <div 
     bind:this={messageContainer}
-    class="flex-1 space-y-3 sm:space-y-4 p-2 sm:p-4 relative z-10 overflow-y-auto"
-    on:scroll={handleScroll}
+    class="space-y-3 sm:space-y-4 relative z-10"
   >
     {#if messages.length === 0}
       <div class="flex flex-col items-center justify-center py-8 sm:py-12 text-gray-500">
@@ -146,8 +145,9 @@
 
 <style>
   .chat-container {
-    min-height: 100vh;
-    background-attachment: fixed;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .bg-grid {
