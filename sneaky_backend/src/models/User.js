@@ -48,21 +48,30 @@ const User = sequelize.define('User', {
 
 // Static methods
 User.findByEmail = async function(email) {
-  return await this.findOne({ where: { email } });
+  console.log('[User Debug] Finding user by email:', email);
+  const user = await this.findOne({ where: { email } });
+  console.log('[User Debug] Found user:', user ? user.toJSON() : null);
+  return user;
 };
 
 User.updateLastLogin = async function(id) {
-  return await this.update(
+  console.log('[User Debug] Updating last login for user:', id);
+  const result = await this.update(
     { last_login: sequelize.literal('CURRENT_TIMESTAMP') },
     { where: { id } }
   );
+  console.log('[User Debug] Update result:', result);
+  return result;
 };
 
 User.updateUsername = async function(userId, newUsername) {
-  return await this.update(
+  console.log('[User Debug] Updating username for user:', userId, 'to:', newUsername);
+  const result = await this.update(
     { username: newUsername },
     { where: { id: userId } }
   );
+  console.log('[User Debug] Update result:', result);
+  return result;
 };
 
 // Coin management methods
@@ -162,11 +171,16 @@ User.addCoins = async function(userId, amount) {
 User.getCoins = async function(userId) {
   try {
     console.log('[Coins Debug] Getting coins for user:', userId);
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'coins', 'username', 'email']
+    });
+    
     if (!user) {
       console.error('[Coins Debug] User not found for getting coins:', userId);
       throw new Error('User not found');
     }
+    
+    console.log('[Coins Debug] Found user:', user.toJSON());
     console.log('[Coins Debug] Current coins:', user.coins);
     return user.coins;
   } catch (error) {
@@ -174,5 +188,10 @@ User.getCoins = async function(userId) {
     throw error;
   }
 };
+
+// Ensure the table exists
+User.sync({ alter: true })
+  .then(() => console.log('[User Model] User table synchronized'))
+  .catch(err => console.error('[User Model] Error synchronizing User table:', err));
 
 module.exports = User; 

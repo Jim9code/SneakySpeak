@@ -27,7 +27,7 @@ const sequelize = process.env.DATABASE_URL
                 rejectUnauthorized: false
             }
         },
-        logging: false,
+        logging: console.log, // Enable SQL logging
         pool: {
             max: 5,
             min: 0,
@@ -41,7 +41,7 @@ const sequelize = process.env.DATABASE_URL
         username: process.env.DB_USER,
         password: process.env.DB_PASSWORD || '',
         database: process.env.DB_NAME,
-        logging: false,
+        logging: console.log, // Enable SQL logging
         pool: {
             max: 5,
             min: 0,
@@ -53,18 +53,34 @@ const sequelize = process.env.DATABASE_URL
 // Initialize database connection
 const initializeDatabase = async () => {
     try {
+        console.log('Attempting to connect to database...');
         await sequelize.authenticate();
         console.log('Database connection established successfully.');
         
-        // Sync all models with existing tables (don't recreate tables)
-        await sequelize.sync({ alter: false });
+        // Load models before syncing
+        require('../models/User');
+        require('../models/Message');
+        
+        console.log('Syncing database models...');
+        // Sync all models with force:true to recreate tables
+        await sequelize.sync({ alter: true, logging: console.log });
         console.log('Database models synchronized successfully.');
+
+        // Verify tables exist
+        const [results] = await sequelize.query('SHOW TABLES');
+        console.log('Available tables:', results);
+
         return true;
     } catch (error) {
-        console.error('Unable to connect to the database:', error);
+        console.error('Database initialization error:', error);
         return false;
     }
 };
+
+// Test the database connection immediately
+sequelize.authenticate()
+    .then(() => console.log('Initial database connection test successful'))
+    .catch(err => console.error('Initial database connection test failed:', err));
 
 // Export the sequelize instance as default export
 module.exports = sequelize;
