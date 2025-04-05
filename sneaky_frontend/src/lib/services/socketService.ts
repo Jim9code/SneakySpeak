@@ -24,6 +24,11 @@ class SocketService {
         if (this.socket?.connected) return;
 
         const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+        console.log('Environment variables:', {
+            VITE_API_URL: import.meta.env.VITE_API_URL,
+            isDevelopment: import.meta.env.DEV,
+            isProduction: import.meta.env.PROD
+        });
         console.log('Connecting to backend URL:', backendUrl);
 
         this.socket = io(backendUrl, {

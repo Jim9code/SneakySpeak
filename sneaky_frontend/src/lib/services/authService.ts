@@ -1,7 +1,7 @@
 import { authStore } from '../stores/authStore';
 import { get } from 'svelte/store';
 
-const API_URL = import.meta.env.API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 interface LoginResponse {
     message: string;
@@ -21,10 +21,9 @@ interface VerifyResponse {
 }
 
 class AuthService {
-    private readonly baseUrl: string;
-
     constructor() {
-        this.baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+        // Log the API URL being used
+        console.log('Using API URL:', API_URL);
     }
 
     async initiateLogin(email: string): Promise<LoginResponse> {
