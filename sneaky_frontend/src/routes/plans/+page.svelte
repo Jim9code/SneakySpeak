@@ -226,88 +226,109 @@
   }
 </script>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-  <div class="text-center">
-    <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-      Get More Coins
-    </h2>
-    <p class="mt-4 text-lg text-gray-600">
-      Purchase coins to send anonymous messages and memes
-    </p>
-    {#if error}
-      <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-        <p class="text-sm text-red-600">{error}</p>
-        {#if error.includes('Authentication')}
-          <button
-            class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-            on:click={() => goto('/login')}
-          >
-            Go to Login
-          </button>
-        {/if}
-      </div>
-    {/if}
-    {#if successMessage}
-      <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-        <h3 class="text-lg font-medium text-green-800 mb-2">Success!</h3>
-        <p class="text-green-700">{successMessage}</p>
-        <div class="mt-4 flex justify-center space-x-4">
-          <button
-            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            on:click={() => goto('/chat')}
-          >
-            Go to Chat
-          </button>
-          <button
-            class="px-4 py-2 border border-green-600 text-green-600 rounded hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            on:click={() => successMessage = null}
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    {/if}
-  </div>
-
-  <div class="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:grid-cols-3">
-    {#each COIN_PACKAGES as package_}
-      <div class="bg-white border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200">
-        <div class="p-6">
-          <h3 class="text-lg font-medium text-gray-900">{package_.description}</h3>
-          <p class="mt-4 text-sm text-gray-500">Get {package_.coins} coins</p>
-          <p class="mt-8">
-            <span class="text-4xl font-extrabold text-gray-900">₦{package_.price}</span>
-          </p>
-          {#if package_.savings !== '0%'}
-            <p class="mt-2 text-sm text-green-600">Save {package_.savings}</p>
+<div class="min-h-screen bg-gray-50 overflow-y-auto">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center">
+      <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+        Get More Coins
+      </h2>
+      <p class="mt-4 text-lg text-gray-600">
+        Purchase coins to send anonymous messages and memes
+      </p>
+      {#if error}
+        <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+          <p class="text-sm text-red-600">{error}</p>
+          {#if error.includes('Authentication')}
+            <button
+              class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              on:click={() => goto('/login')}
+            >
+              Go to Login
+            </button>
           {/if}
-          <button
-            type="button"
-            on:click={() => handlePurchase(package_)}
-            disabled={loading}
-            class="mt-8 block w-full bg-indigo-600 border border-transparent rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Processing...' : 'Purchase'}
-          </button>
         </div>
-        <div class="px-6 pt-6 pb-8">
-          <h4 class="text-sm font-medium text-gray-900">What's included</h4>
-          <ul class="mt-6 space-y-4">
-            <li class="flex space-x-3">
-              <svg class="flex-shrink-0 h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
-              <span class="text-sm text-gray-500">Send {Math.floor(package_.coins/2)} anonymous text messages</span>
-            </li>
-            <li class="flex space-x-3">
-              <svg class="flex-shrink-0 h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
-              <span class="text-sm text-gray-500">Send {Math.floor(package_.coins/4)} anonymous memes</span>
-            </li>
-          </ul>
+      {/if}
+      {#if successMessage}
+        <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
+          <h3 class="text-lg font-medium text-green-800 mb-2">Success!</h3>
+          <p class="text-green-700">{successMessage}</p>
+          <div class="mt-4 flex justify-center space-x-4">
+            <button
+              class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              on:click={() => goto('/chat')}
+            >
+              Go to Chat
+            </button>
+            <button
+              class="px-4 py-2 border border-green-600 text-green-600 rounded hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              on:click={() => successMessage = null}
+            >
+              Close
+            </button>
+          </div>
         </div>
-      </div>
-    {/each}
+      {/if}
+    </div>
+
+    <div class="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:grid-cols-3">
+      {#each COIN_PACKAGES as package_}
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200">
+          <div class="p-6">
+            <h3 class="text-lg font-medium text-gray-900">{package_.description}</h3>
+            <p class="mt-4 text-sm text-gray-500">Get {package_.coins} coins</p>
+            <p class="mt-8">
+              <span class="text-4xl font-extrabold text-gray-900">₦{package_.price}</span>
+            </p>
+            {#if package_.savings !== '0%'}
+              <p class="mt-2 text-sm text-green-600">Save {package_.savings}</p>
+            {/if}
+            <button
+              type="button"
+              on:click={() => handlePurchase(package_)}
+              disabled={loading}
+              class="mt-8 block w-full bg-indigo-600 border border-transparent rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Processing...' : 'Purchase'}
+            </button>
+          </div>
+          <div class="px-6 pt-6 pb-8">
+            <h4 class="text-sm font-medium text-gray-900">What's included</h4>
+            <ul class="mt-6 space-y-4">
+              <li class="flex space-x-3">
+                <svg class="flex-shrink-0 h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-sm text-gray-500">Send {Math.floor(package_.coins/2)} anonymous text messages</span>
+              </li>
+              <li class="flex space-x-3">
+                <svg class="flex-shrink-0 h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-sm text-gray-500">Send {Math.floor(package_.coins/4)} anonymous memes</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      {/each}
+    </div>
   </div>
-</div> 
+</div>
+
+<style>
+  :global(html, body) {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Add smooth scrolling to the page */
+  :global(html) {
+    scroll-behavior: smooth;
+  }
+
+  /* Ensure proper overflow handling */
+  :global(body) {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+</style> 
