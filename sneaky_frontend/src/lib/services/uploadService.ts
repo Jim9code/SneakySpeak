@@ -12,18 +12,26 @@ class UploadService {
         formData.append('meme', file);
 
         try {
-            const response = await fetch(`${API_URL}/upload`, {
+            const response = await fetch(`${API_URL}/api/upload`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include',
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Failed to upload meme');
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to upload meme');
+                } else {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server error: Failed to upload meme');
+                }
             }
 
-            return await response.json();
+            const data = await response.json();
+            return data;
         } catch (error) {
             console.error('Error uploading meme:', error);
             throw error;
