@@ -219,20 +219,22 @@
         </div>
       </header>
 
-      <main class="flex-1 overflow-hidden bg-gray-50 flex flex-col">
+      <main class="flex-1 overflow-hidden bg-gray-50 flex flex-col relative">
         <div class="max-w-7xl mx-auto w-full h-full flex flex-col p-2 sm:p-4">
-          <div class="flex-1 overflow-y-auto min-h-0">
+          <div class="flex-1 overflow-y-auto min-h-0 pb-[100px] sm:pb-[120px]">
             <MessageList {messages} />
           </div>
-          <div class="flex-none mt-2 sm:mt-4">
-            <MessageInput 
-              {isAnonymous}
-              {coins}
-              on:sendMessage={(e: MessageEvent) => handleSendMessage(e)}
-              on:sendImage={(e: ImageEvent) => handleSendImage(e)}
-              on:toggleAnonymous={handleToggleAnonymous}
-              on:navigateToPlans={handleNavigateToPlans}
-            />
+          <div class="fixed bottom-0 left-0 right-0 bg-gray-50 p-2 sm:p-4 border-t border-gray-100">
+            <div class="max-w-7xl mx-auto">
+              <MessageInput 
+                {isAnonymous}
+                {coins}
+                on:sendMessage={(e: MessageEvent) => handleSendMessage(e)}
+                on:sendImage={(e: ImageEvent) => handleSendImage(e)}
+                on:toggleAnonymous={handleToggleAnonymous}
+                on:navigateToPlans={handleNavigateToPlans}
+              />
+            </div>
           </div>
         </div>
       </main>
