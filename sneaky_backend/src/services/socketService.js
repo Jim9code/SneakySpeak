@@ -14,69 +14,102 @@ async function initializeSocket(server) {
     });
 
     io.on('connection', async (socket) => {
-        console.log('User connected:', socket.id);
+        console.log('[Socket Debug] User connected:', socket.id);
 
         // Handle joining the chat room
         socket.on('join_chat', async (userData) => {
-            socket.join('main_room');
-            socket.userData = userData;
-            console.log(`${userData.username} joined the chat`);
-
-            // Send recent messages to the newly connected user
             try {
-                const recentMessages = await Message.findAll({
-                    order: [['created_at', 'DESC']],
-                    limit: 50
-                });
+                console.log('[Socket Debug] Join chat request:', userData);
                 
-                // Transform messages to match frontend format
-                const transformedMessages = recentMessages.map(msg => ({
-                    id: msg.id,
-                    text: msg.text || '',
-                    sender: msg.sender,
-                    isAnonymous: msg.is_anonymous,
-                    type: msg.type,
-                    imageUrl: msg.image_url,
-                    caption: msg.caption,
-                    timestamp: msg.created_at
-                }));
+                if (!userData || !userData.userId) {
+                    console.error('[Socket Debug] Invalid user data:', userData);
+                    socket.emit('error', { message: 'Invalid user data' });
+                    return;
+                }
 
-                socket.emit('recent_messages', transformedMessages.reverse());
+                // Verify user exists before proceeding
+                const user = await User.findByPk(userData.userId);
+                if (!user) {
+                    console.error('[Socket Debug] User not found in database:', userData.userId);
+                    socket.emit('error', { message: 'User not found' });
+                    return;
+                }
 
-                // Send user's coin balance
-                if (userData.userId) {
+                socket.join('main_room');
+                socket.userData = {
+                    ...userData,
+                    verifiedUser: user.toJSON() // Store verified user data
+                };
+                console.log(`[Socket Debug] ${userData.username} (ID: ${userData.userId}) joined the chat`);
+
+                // Send recent messages to the newly connected user
+                try {
+                    const recentMessages = await Message.findAll({
+                        order: [['created_at', 'DESC']],
+                        limit: 50
+                    });
+                    
+                    console.log('[Socket Debug] Fetched recent messages:', recentMessages.length);
+                    
+                    // Transform messages to match frontend format
+                    const transformedMessages = recentMessages.map(msg => ({
+                        id: msg.id,
+                        text: msg.text || '',
+                        sender: msg.sender,
+                        isAnonymous: msg.is_anonymous,
+                        type: msg.type,
+                        imageUrl: msg.image_url,
+                        caption: msg.caption,
+                        timestamp: msg.created_at
+                    }));
+
+                    socket.emit('recent_messages', transformedMessages.reverse());
+
+                    // Send user's coin balance
                     try {
-                        const coins = await User.getCoins(userData.userId);
+                        const coins = await User.getCoins(user.id);
+                        console.log('[Socket Debug] Sending coin balance for user:', user.id, coins);
                         socket.emit('coin_balance', { coins });
                     } catch (error) {
-                        console.error('Error fetching coin balance:', error);
+                        console.error('[Socket Debug] Error fetching coin balance:', error);
+                        socket.emit('error', { message: 'Error fetching coin balance' });
                     }
+                } catch (error) {
+                    console.error('[Socket Debug] Error fetching recent messages:', error);
+                    socket.emit('error', { message: 'Error fetching recent messages' });
                 }
             } catch (error) {
-                console.error('Error fetching recent messages:', error);
+                console.error('[Socket Debug] Error in join_chat:', error);
+                socket.emit('error', { message: 'Error joining chat' });
             }
         });
 
         // Handle new messages
         socket.on('send_message', async (messageData) => {
             try {
+                if (!socket.userData?.verifiedUser) {
+                    console.error('[Socket Debug] No verified user data found for message:', socket.id);
+                    socket.emit('error', { message: 'User not authenticated' });
+                    return;
+                }
+
                 // Check if user has enough coins for anonymous message
-                if (messageData.isAnonymous && socket.userData?.userId) {
+                if (messageData.isAnonymous) {
                     const coinCost = messageData.type === 'meme' ? 4 : 2;
                     try {
-                        await User.deductCoins(socket.userData.userId, coinCost);
+                        await User.deductCoins(socket.userData.verifiedUser.id, coinCost);
                         
                         // Get updated coin balance
-                        const coins = await User.getCoins(socket.userData.userId);
+                        const coins = await User.getCoins(socket.userData.verifiedUser.id);
                         socket.emit('coin_balance', { coins });
                     } catch (error) {
-                        console.error('Error deducting coins:', error);
+                        console.error('[Socket Debug] Error deducting coins:', error);
                         socket.emit('error', { message: 'Insufficient coins for anonymous message' });
                         return;
                     }
                 }
 
-                // Save message to database with snake_case field names
+                // Save message to database
                 const savedMessage = await Message.create({
                     text: messageData.text || '',
                     sender: messageData.sender,
@@ -87,7 +120,9 @@ async function initializeSocket(server) {
                     room_id: 'main_room'
                 });
 
-                // Transform the saved message to match frontend format (camelCase)
+                console.log('[Socket Debug] Saved new message:', savedMessage.id);
+
+                // Transform the saved message
                 const transformedMessage = {
                     id: savedMessage.id,
                     text: savedMessage.text,
@@ -99,17 +134,17 @@ async function initializeSocket(server) {
                     timestamp: savedMessage.created_at
                 };
 
-                // Broadcast the transformed message to all clients in the room
+                // Broadcast the message
                 io.to('main_room').emit('new_message', transformedMessage);
             } catch (error) {
-                console.error('Error saving message:', error);
+                console.error('[Socket Debug] Error saving message:', error);
                 socket.emit('error', { message: 'Failed to save message' });
             }
         });
 
         // Handle user disconnection
         socket.on('disconnect', () => {
-            console.log('User disconnected:', socket.id);
+            console.log('[Socket Debug] User disconnected:', socket.id);
         });
     });
 

@@ -87,44 +87,58 @@ const verifyCode = async (req, res) => {
             return res.status(400).json({ message: 'Email and verification code are required' });
         }
 
-        console.log(`Attempting to verify code for ${email}. Code provided:`, code);
+        console.log(`[Auth Debug] Attempting to verify code for ${email}. Code provided:`, code);
         logVerificationCodes();
 
         const storedVerification = verificationCodes.get(email);
         if (!storedVerification) {
-            console.log(`No verification found for ${email}`);
+            console.log(`[Auth Debug] No verification found for ${email}`);
             return res.status(400).json({ message: 'No verification code found or code expired' });
         }
 
-        console.log(`Found stored verification for ${email}:`, {
+        console.log(`[Auth Debug] Found stored verification for ${email}:`, {
             storedCode: storedVerification.code,
             age: Math.round((Date.now() - storedVerification.timestamp) / 1000) + ' seconds'
         });
 
         if (Date.now() - storedVerification.timestamp > VERIFICATION_CODE_EXPIRY) {
-            console.log(`Verification code expired for ${email}`);
+            console.log(`[Auth Debug] Verification code expired for ${email}`);
             verificationCodes.delete(email);
             return res.status(400).json({ message: 'Verification code expired' });
         }
 
         if (storedVerification.code !== code) {
-            console.log(`Invalid code for ${email}. Expected ${storedVerification.code}, got ${code}`);
+            console.log(`[Auth Debug] Invalid code for ${email}. Expected ${storedVerification.code}, got ${code}`);
             return res.status(400).json({ message: 'Invalid verification code' });
         }
 
         // Get or create user
+        console.log('[Auth Debug] Looking up user by email:', email);
         let user = await User.findByEmail(email);
+        
         if (!user) {
+            console.log('[Auth Debug] User not found, creating new user');
             const domain = email.split('@')[1];
             const username = generateUsername(email);
-            user = await User.create({
-                email,
-                username,
-                school_domain: domain
-            });
+            
+            try {
+                user = await User.create({
+                    email,
+                    username,
+                    school_domain: domain,
+                    coins: 10 // Ensure initial coins are set
+                });
+                console.log('[Auth Debug] Created new user:', user.toJSON());
+            } catch (createError) {
+                console.error('[Auth Debug] Error creating user:', createError);
+                throw createError;
+            }
+        } else {
+            console.log('[Auth Debug] Found existing user:', user.toJSON());
         }
 
         // Update last login
+        console.log('[Auth Debug] Updating last login for user:', user.id);
         await User.updateLastLogin(user.id);
 
         // Generate JWT token and set as cookie
@@ -140,18 +154,27 @@ const verifyCode = async (req, res) => {
         // Clear used verification code only after successful verification
         verificationCodes.delete(email);
 
+        // Verify user exists in database before sending response
+        const verifiedUser = await User.findByPk(user.id);
+        if (!verifiedUser) {
+            console.error('[Auth Debug] User not found after creation/update:', user.id);
+            throw new Error('User verification failed');
+        }
+
+        console.log('[Auth Debug] Sending successful login response for user:', verifiedUser.toJSON());
+
         return res.json({
             user: {
-                id: user.id,
-                email: user.email,
-                username: user.username,
-                school_domain: user.school_domain,
-                coins: user.coins || 0
+                id: verifiedUser.id,
+                email: verifiedUser.email,
+                username: verifiedUser.username,
+                school_domain: verifiedUser.school_domain,
+                coins: verifiedUser.coins || 0
             },
             token
         });
     } catch (error) {
-        console.error('Verification error:', error);
+        console.error('[Auth Debug] Verification error:', error);
         return res.status(500).json({ message: 'Server error' });
     }
 };
