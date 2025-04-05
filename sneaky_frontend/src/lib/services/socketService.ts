@@ -23,7 +23,10 @@ class SocketService {
     connect() {
         if (this.socket?.connected) return;
 
-        this.socket = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000', {
+        const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+        console.log('Connecting to backend URL:', backendUrl);
+
+        this.socket = io(backendUrl, {
             withCredentials: true,
             reconnection: true,
             reconnectionAttempts: 5,
@@ -38,17 +41,26 @@ class SocketService {
 
         this.socket.on('connect', () => {
             console.log('Connected to chat server');
-            const user = get(authStore).user;
-            if (user) {
-                this.socket?.emit('join_chat', {
-                    username: user.username,
-                    userId: user.id
+            const authState = get(authStore);
+            console.log('Current auth state:', authState);
+            
+            if (authState.user) {
+                console.log('Joining chat with user:', {
+                    id: authState.user.id,
+                    username: authState.user.username
                 });
+                
+                this.socket?.emit('join_chat', {
+                    userId: authState.user.id,
+                    username: authState.user.username
+                });
+            } else {
+                console.error('No user found in auth store');
             }
         });
 
         this.socket.on('recent_messages', (messages: Message[]) => {
-            // Process messages to ensure proper date objects
+            console.log('Received recent messages:', messages.length);
             const processedMessages = messages.map(message => ({
                 ...message,
                 timestamp: new Date(message.timestamp)
@@ -57,7 +69,7 @@ class SocketService {
         });
 
         this.socket.on('new_message', (message: Message) => {
-            // Ensure message has required fields
+            console.log('Received new message:', message);
             const processedMessage = {
                 ...message,
                 id: message.id || Date.now(),
@@ -67,10 +79,12 @@ class SocketService {
         });
 
         this.socket.on('coin_balance', (data: { coins: number }) => {
+            console.log('Received coin balance update:', data);
             this.coinBalanceHandlers.forEach(handler => handler(data));
         });
 
         this.socket.on('error', (error: { message: string }) => {
+            console.error('Socket error received:', error);
             this.errorHandlers.forEach(handler => handler(error));
         });
 
@@ -80,10 +94,6 @@ class SocketService {
 
         this.socket.on('connect_error', (error: any) => {
             console.error('Socket connection error:', error);
-        });
-
-        this.socket.on('error', (error: any) => {
-            console.error('Socket error:', error);
         });
     }
 
@@ -120,11 +130,13 @@ class SocketService {
             console.error('Socket not connected');
             return;
         }
+        console.log('Sending message:', messageData);
         this.socket.emit('send_message', messageData);
     }
 
     disconnect() {
         if (this.socket) {
+            console.log('Disconnecting socket');
             this.socket.disconnect();
             this.socket = null;
         }
