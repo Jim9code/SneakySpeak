@@ -112,67 +112,79 @@ const verifyCode = async (req, res) => {
             return res.status(400).json({ message: 'Invalid verification code' });
         }
 
-        // Get or create user
-        console.log('[Auth Debug] Looking up user by email:', email);
-        let user = await User.findByEmail(email);
+        // Get or create user within a transaction
+        const transaction = await sequelize.transaction();
         
-        if (!user) {
-            console.log('[Auth Debug] User not found, creating new user');
-            const domain = email.split('@')[1];
-            const username = generateUsername(email);
+        try {
+            console.log('[Auth Debug] Looking up user by email:', email);
+            let user = await User.findByEmail(email);
             
-            try {
+            if (!user) {
+                console.log('[Auth Debug] User not found, creating new user');
+                const domain = email.split('@')[1];
+                const username = generateUsername(email);
+                
                 user = await User.create({
                     email,
                     username,
                     school_domain: domain,
-                    coins: 10 // Ensure initial coins are set
-                });
+                    coins: 10,
+                    created_at: new Date()
+                }, { transaction });
+                
                 console.log('[Auth Debug] Created new user:', user.toJSON());
-            } catch (createError) {
-                console.error('[Auth Debug] Error creating user:', createError);
-                throw createError;
+            } else {
+                console.log('[Auth Debug] Found existing user:', user.toJSON());
             }
-        } else {
-            console.log('[Auth Debug] Found existing user:', user.toJSON());
+
+            // Update last login
+            console.log('[Auth Debug] Updating last login for user:', user.id);
+            await User.update(
+                { last_login: sequelize.literal('CURRENT_TIMESTAMP') },
+                { 
+                    where: { id: user.id },
+                    transaction
+                }
+            );
+
+            // Verify user exists and get fresh data
+            const verifiedUser = await User.findByPk(user.id, { transaction });
+            if (!verifiedUser) {
+                throw new Error('User verification failed');
+            }
+
+            // Generate JWT token
+            const token = jwt.sign(
+                { userId: verifiedUser.id },
+                process.env.JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            // Commit transaction
+            await transaction.commit();
+
+            // Clear used verification code
+            verificationCodes.delete(email);
+
+            // Set cookie and send response
+            res.cookie('token', token, COOKIE_OPTIONS);
+
+            console.log('[Auth Debug] Login successful for user:', verifiedUser.toJSON());
+
+            return res.json({
+                user: {
+                    id: verifiedUser.id,
+                    email: verifiedUser.email,
+                    username: verifiedUser.username,
+                    school_domain: verifiedUser.school_domain,
+                    coins: verifiedUser.coins
+                },
+                token
+            });
+        } catch (error) {
+            await transaction.rollback();
+            throw error;
         }
-
-        // Update last login
-        console.log('[Auth Debug] Updating last login for user:', user.id);
-        await User.updateLastLogin(user.id);
-
-        // Generate JWT token and set as cookie
-        const token = jwt.sign(
-            { userId: user.id },
-            process.env.JWT_SECRET,
-            { expiresIn: '7d' }
-        );
-
-        // Set JWT as HTTP-only cookie
-        res.cookie('token', token, COOKIE_OPTIONS);
-
-        // Clear used verification code only after successful verification
-        verificationCodes.delete(email);
-
-        // Verify user exists in database before sending response
-        const verifiedUser = await User.findByPk(user.id);
-        if (!verifiedUser) {
-            console.error('[Auth Debug] User not found after creation/update:', user.id);
-            throw new Error('User verification failed');
-        }
-
-        console.log('[Auth Debug] Sending successful login response for user:', verifiedUser.toJSON());
-
-        return res.json({
-            user: {
-                id: verifiedUser.id,
-                email: verifiedUser.email,
-                username: verifiedUser.username,
-                school_domain: verifiedUser.school_domain,
-                coins: verifiedUser.coins || 0
-            },
-            token
-        });
     } catch (error) {
         console.error('[Auth Debug] Verification error:', error);
         return res.status(500).json({ message: 'Server error' });

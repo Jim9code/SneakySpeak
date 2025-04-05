@@ -27,7 +27,7 @@ const sequelize = process.env.DATABASE_URL
                 rejectUnauthorized: false
             }
         },
-        logging: console.log, // Enable SQL logging
+        logging: console.log,
         pool: {
             max: 5,
             min: 0,
@@ -41,7 +41,7 @@ const sequelize = process.env.DATABASE_URL
         username: process.env.DB_USER,
         password: process.env.DB_PASSWORD || '',
         database: process.env.DB_NAME,
-        logging: console.log, // Enable SQL logging
+        logging: console.log,
         pool: {
             max: 5,
             min: 0,
@@ -53,26 +53,40 @@ const sequelize = process.env.DATABASE_URL
 // Initialize database connection
 const initializeDatabase = async () => {
     try {
-        console.log('Attempting to connect to database...');
+        console.log('[Database] Attempting to connect...');
         await sequelize.authenticate();
-        console.log('Database connection established successfully.');
+        console.log('[Database] Connection established successfully.');
         
-        // Load models before syncing
-        require('../models/User');
-        require('../models/Message');
+        // Load models
+        const User = require('../models/User');
+        const Message = require('../models/Message');
         
-        console.log('Syncing database models...');
-        // Sync all models with force:true to recreate tables
-        await sequelize.sync({ alter: true, logging: console.log });
-        console.log('Database models synchronized successfully.');
+        console.log('[Database] Syncing database models...');
+        
+        // Force sync all tables once
+        await sequelize.sync({ force: true });
+        console.log('[Database] Database models synchronized successfully.');
 
-        // Verify tables exist
-        const [results] = await sequelize.query('SHOW TABLES');
-        console.log('Available tables:', results);
+        // Verify tables
+        const [tables] = await sequelize.query('SHOW TABLES');
+        console.log('[Database] Available tables:', tables);
+
+        // Create a test user to verify database operations
+        try {
+            const testUser = await User.create({
+                email: 'test@test.edu',
+                username: 'TestUser',
+                school_domain: 'test.edu',
+                coins: 10
+            });
+            console.log('[Database] Test user created successfully:', testUser.toJSON());
+        } catch (error) {
+            console.error('[Database] Error creating test user:', error);
+        }
 
         return true;
     } catch (error) {
-        console.error('Database initialization error:', error);
+        console.error('[Database] Initialization error:', error);
         return false;
     }
 };
@@ -82,7 +96,6 @@ sequelize.authenticate()
     .then(() => console.log('Initial database connection test successful'))
     .catch(err => console.error('Initial database connection test failed:', err));
 
-// Export the sequelize instance as default export
+// Export the sequelize instance and initialization function
 module.exports = sequelize;
-// Also export the initialization function
 module.exports.initializeDatabase = initializeDatabase; 
