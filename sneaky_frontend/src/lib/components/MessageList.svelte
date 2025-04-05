@@ -1,5 +1,6 @@
 <script lang="ts">
   import { authStore } from '$lib/stores/authStore';
+  import { onMount } from 'svelte';
 
   interface Message {
     id: number;
@@ -17,6 +18,10 @@
   // Get current user from auth store
   $: currentUser = $authStore.user;
 
+  let messageContainer: HTMLElement;
+  let shouldAutoScroll = true;
+  let hasOverflow = false;
+
   function formatTime(date: Date): string {
     return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
@@ -24,9 +29,50 @@
   function isOwnMessage(message: Message): boolean {
     return Boolean(currentUser && message.sender === currentUser.username);
   }
+
+  function checkOverflow() {
+    if (!messageContainer) return false;
+    return messageContainer.scrollHeight > messageContainer.clientHeight;
+  }
+
+  function isNearBottom() {
+    if (!messageContainer) return false;
+    
+    const threshold = 100; // pixels from bottom
+    const position = messageContainer.scrollHeight - messageContainer.scrollTop - messageContainer.clientHeight;
+    return position <= threshold;
+  }
+
+  function handleScroll() {
+    shouldAutoScroll = isNearBottom();
+  }
+
+  $: if (messages && messageContainer) {
+    // Check if content causes overflow
+    hasOverflow = checkOverflow();
+    
+    // Only auto-scroll if we have overflow and user is near bottom
+    if (hasOverflow && shouldAutoScroll && isNearBottom()) {
+      setTimeout(() => {
+        messageContainer.scrollTo({
+          top: messageContainer.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }
+
+  onMount(() => {
+    if (messageContainer) {
+      messageContainer.addEventListener('scroll', handleScroll);
+      // Initial overflow check
+      hasOverflow = checkOverflow();
+      return () => messageContainer.removeEventListener('scroll', handleScroll);
+    }
+  });
 </script>
 
-<div class="chat-container relative min-h-full">
+<div class="chat-container relative flex flex-col h-[calc(100vh-4rem)]">
   <!-- Animated background elements -->
   <div class="fixed inset-0 bg-gradient-to-br from-gray-50 to-white overflow-hidden pointer-events-none z-0">
     <div class="absolute inset-0 bg-grid opacity-10"></div>
@@ -45,7 +91,11 @@
   </div>
 
   <!-- Messages content -->
-  <div class="space-y-3 sm:space-y-4 p-2 sm:p-4 relative z-10">
+  <div 
+    bind:this={messageContainer}
+    class="flex-1 space-y-3 sm:space-y-4 p-2 sm:p-4 relative z-10 overflow-y-auto"
+    on:scroll={handleScroll}
+  >
     {#if messages.length === 0}
       <div class="flex flex-col items-center justify-center py-8 sm:py-12 text-gray-500">
         <svg class="w-16 h-16 sm:w-20 sm:h-20 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -65,10 +115,10 @@
             <div class="flex-1 flex {isOwnMessage(message) ? 'justify-end' : 'justify-start'} w-full">
               <div class="max-w-[85%] {isOwnMessage(message) ? 'ml-auto' : 'mr-auto'}">
                 <div class="flex flex-col {isOwnMessage(message) ? 'items-end' : 'items-start'}">
-                  <span class="text-sm text-gray-500 mb-1 {isOwnMessage(message) ? 'text-right' : 'text-left'} w-full">
+                  <span class="text-sm sm:text-base text-gray-500 mb-1 {isOwnMessage(message) ? 'text-right' : 'text-left'} w-full">
                     {message.isAnonymous ? 'Anonymous' : message.sender} • {formatTime(message.timestamp)}
                   </span>
-                  <div class="rounded-lg p-3 sm:p-4 {isOwnMessage(message) ? 'bg-blue-500 text-white shadow-blue-200/50' : 'bg-white/80 backdrop-blur-sm border border-gray-100 text-gray-900'} {message.type === 'meme' ? 'overflow-hidden' : ''} shadow-lg hover:shadow-xl transition-shadow">
+                  <div class="rounded-lg p-3.5 sm:p-4 {isOwnMessage(message) ? 'bg-blue-500 text-white shadow-blue-200/50' : 'bg-white/80 backdrop-blur-sm border border-gray-100 text-gray-900'} {message.type === 'meme' ? 'overflow-hidden' : ''} shadow-lg hover:shadow-xl transition-shadow">
                     {#if message.type === 'meme' && message.imageUrl}
                       <div class="space-y-2">
                         <img
@@ -77,11 +127,11 @@
                           class="max-h-48 sm:max-h-64 w-auto rounded-lg cursor-zoom-in hover:opacity-90 transition-opacity"
                         />
                         {#if message.caption}
-                          <p class="text-xs sm:text-sm break-words">{message.caption}</p>
+                          <p class="text-sm sm:text-base break-words leading-relaxed">{message.caption}</p>
                         {/if}
                       </div>
                     {:else}
-                      <p class="text-xs sm:text-sm break-words">{message.text}</p>
+                      <p class="text-sm sm:text-base break-words leading-relaxed">{message.text}</p>
                     {/if}
                   </div>
                 </div>

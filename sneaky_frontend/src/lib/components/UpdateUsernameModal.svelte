@@ -3,10 +3,11 @@
     import { createEventDispatcher } from 'svelte';
     import { goto } from '$app/navigation';
 
+    export let currentUsername: string;
     const dispatch = createEventDispatcher();
     const COINS_REQUIRED = 70;
 
-    let username = '';
+    let username = currentUsername;
     let error = '';
     let loading = false;
 

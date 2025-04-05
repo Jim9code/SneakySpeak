@@ -173,38 +173,49 @@
     <IntroAnimation onComplete={handleIntroComplete} />
   {:else}
     <div class="flex flex-col h-screen" in:fade={{ duration: 300 }}>
-      <header class="bg-white/80 backdrop-blur-sm shadow-sm p-3 sm:p-4 flex-none sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto flex flex-wrap sm:flex-nowrap justify-between items-center gap-2">
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <span class="text-xl sm:text-2xl">🤫</span>
-            <h1 class="text-lg sm:text-xl font-bold text-gray-900">SneakySpeak</h1>
-            {#if user}
-              <div class="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
-                <span class="text-xs sm:text-sm text-gray-600"><span><abbr title="Jeth" class="text-green-600">Admin:</abbr></span> Welcome's,</span>
-                <button
-                  class="text-xs sm:text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:underline transition-colors"
-                  on:click={() => showUsernameModal = true}
-                >
-                  {user.username}
-                  <span class="text-xs ml-1">(edit)</span>
-                </button>
-                {#if isAnonymous}
-                  <span class="text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full">Anonymous mode</span>
-                {/if}
-              </div>
-            {/if}
-          </div>
-          <div class="flex items-center">
+      <header class="bg-white/80 backdrop-blur-sm shadow-sm p-3 flex-none sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto">
+          <!-- Top row with logo and logout -->
+          <div class="flex items-center justify-between mb-2 sm:mb-0">
+            <div class="flex items-center gap-2">
+              <span class="text-xl sm:text-2xl">🤫</span>
+              <h1 class="text-lg sm:text-xl font-bold text-gray-900">SneakySpeak</h1>
+            </div>
             <button
               on:click={handleLogout}
-              class="p-2 text-gray-500 hover:text-red-600 transition-colors rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex items-center gap-1 sm:gap-2"
+              class="p-2 text-gray-500 hover:text-red-600 transition-colors rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              aria-label="Logout"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
               </svg>
-              <span class="hidden sm:inline text-sm font-medium">Logout</span>
             </button>
           </div>
+
+          <!-- Bottom row with user info -->
+          {#if user}
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <div class="flex items-center gap-1 text-gray-600 bg-gray-50 px-2 py-1 rounded-md">
+                <span class="font-medium text-green-600">🤫:</span>
+                <button
+                  class="font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:underline transition-colors flex items-center gap-1"
+                  on:click={() => showUsernameModal = true}
+                >
+                  {user.username}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                </button>
+              </div>
+              {#if isAnonymous}
+                <div class="flex items-center">
+                  <span class="bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full text-xs font-medium">
+                    Anonymous mode
+                  </span>
+                </div>
+              {/if}
+            </div>
+          {/if}
         </div>
       </header>
 
