@@ -63,25 +63,30 @@ const initializeDatabase = async () => {
         
         console.log('[Database] Syncing database models...');
         
-        // Force sync all tables once
-        await sequelize.sync({ force: true });
+        // Sync tables without forcing recreation
+        await sequelize.sync({ force: false, alter: true });
         console.log('[Database] Database models synchronized successfully.');
 
         // Verify tables
         const [tables] = await sequelize.query('SHOW TABLES');
         console.log('[Database] Available tables:', tables);
 
-        // Create a test user to verify database operations
+        // Only create test user if no users exist
         try {
-            const testUser = await User.create({
-                email: 'test@test.edu',
-                username: 'TestUser',
-                school_domain: 'test.edu',
-                coins: 10
-            });
-            console.log('[Database] Test user created successfully:', testUser.toJSON());
+            const userCount = await User.count();
+            if (userCount === 0) {
+                const testUser = await User.create({
+                    email: 'test@test.edu',
+                    username: 'TestUser',
+                    school_domain: 'test.edu',
+                    coins: 10
+                });
+                console.log('[Database] Test user created successfully:', testUser.toJSON());
+            } else {
+                console.log('[Database] Users already exist, skipping test user creation');
+            }
         } catch (error) {
-            console.error('[Database] Error creating test user:', error);
+            console.error('[Database] Error checking/creating test user:', error);
         }
 
         return true;
