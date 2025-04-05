@@ -1,7 +1,7 @@
 import { authStore } from '../stores/authStore';
 import { get } from 'svelte/store';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = import.meta.env.API_URL || 'http://localhost:3000/api';
 
 interface LoginResponse {
     message: string;
