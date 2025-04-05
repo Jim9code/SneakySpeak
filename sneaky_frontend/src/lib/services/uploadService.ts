@@ -12,7 +12,7 @@ class UploadService {
         formData.append('meme', file);
 
         try {
-            const response = await fetch(`${API_URL}/api/upload`, {
+            const response = await fetch(`${API_URL}/upload`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include',
