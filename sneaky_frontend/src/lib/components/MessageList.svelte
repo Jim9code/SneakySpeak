@@ -117,7 +117,13 @@
                   <span class="text-sm sm:text-base text-gray-500 mb-1 {isOwnMessage(message) ? 'text-right' : 'text-left'} w-full">
                     {message.isAnonymous ? 'Anonymous' : message.sender} • {formatTime(message.timestamp)}
                   </span>
-                  <div class="rounded-lg p-3.5 sm:p-4 {isOwnMessage(message) ? 'bg-blue-500 text-white shadow-blue-200/50' : 'bg-white/80 backdrop-blur-sm border border-gray-100 text-gray-900'} {message.type === 'meme' ? 'overflow-hidden' : ''} shadow-lg hover:shadow-xl transition-shadow">
+                  <div class="rounded-lg p-3.5 sm:p-4 {
+                    isOwnMessage(message) 
+                      ? 'bg-blue-500 text-white shadow-blue-200/50' 
+                      : message.isAnonymous
+                        ? 'bg-gray-900 text-white shadow-gray-900/20 border-none'
+                        : 'bg-white/80 backdrop-blur-sm border border-gray-100 text-gray-900'
+                  } {message.type === 'meme' ? 'overflow-hidden' : ''} shadow-lg hover:shadow-xl transition-shadow">
                     {#if message.type === 'meme' && message.imageUrl}
                       <div class="space-y-2">
                         <img
