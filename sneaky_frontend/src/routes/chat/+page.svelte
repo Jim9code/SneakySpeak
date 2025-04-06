@@ -195,7 +195,7 @@
           <div class="flex items-center justify-between mb-2 sm:mb-0">
             <div class="flex items-center gap-2">
               <span class="text-xl sm:text-2xl">🤫</span>
-              <h1 class="text-lg sm:text-xl font-bold text-gray-100">SneakySpeak</h1>
+              <h1 class="text-lg sm:text-xl font-bold text-gray-100">SneakChat</h1>
             </div>
             <button
               on:click={handleLogout}
