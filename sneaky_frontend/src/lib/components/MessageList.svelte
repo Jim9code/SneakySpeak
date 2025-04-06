@@ -1,6 +1,6 @@
 <script lang="ts">
   import { authStore } from '$lib/stores/authStore';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { socketService } from '$lib/services/socketService';
   import { fade, slide } from 'svelte/transition';
   import { createEventDispatcher } from 'svelte';
@@ -30,6 +30,10 @@
   let swipeStartY = 0;
   let activeMessageId: number | null = null;
   let swipeThreshold = 50; // pixels to trigger reply action
+
+  // Track revealed anonymous messages
+  let revealedMessages: Set<number> = new Set();
+  let hideTimeouts = new Map<number, ReturnType<typeof setTimeout>>();
 
   const dispatch = createEventDispatcher<{
     reply: Message;
@@ -101,6 +105,43 @@
     activeMessageId = null;
   }
 
+  // Helper function to trigger reactivity
+  function updateRevealedMessages(messageId: number, revealed: boolean) {
+    if (revealed) {
+      revealedMessages.add(messageId);
+    } else {
+      revealedMessages.delete(messageId);
+    }
+    revealedMessages = new Set(revealedMessages); // Create new Set to trigger reactivity
+  }
+
+  function toggleReveal(messageId: number) {
+    if (revealedMessages.has(messageId)) {
+      return; // Don't allow manual hiding
+    }
+
+    // Clear any existing timeout
+    if (hideTimeouts.has(messageId)) {
+      clearTimeout(hideTimeouts.get(messageId));
+      hideTimeouts.delete(messageId);
+    }
+
+    // Show message immediately
+    updateRevealedMessages(messageId, true);
+
+    // Set new timeout to hide after 10 seconds
+    const timeout = setTimeout(() => {
+      updateRevealedMessages(messageId, false);
+    }, 10000);
+
+    hideTimeouts.set(messageId, timeout);
+  }
+
+  // Cleanup timeouts on component destroy
+  onDestroy(() => {
+    hideTimeouts.forEach(timeout => clearTimeout(timeout));
+  });
+
   // Watch for changes in messages array
   $: if (messages && messageContainer) {
     hasOverflow = checkOverflow();
@@ -152,11 +193,11 @@
 
 <div class="chat-container relative">
   <!-- Animated background elements -->
-  <div class="fixed inset-0 bg-gradient-to-br from-gray-50 to-white overflow-hidden pointer-events-none z-0">
-    <div class="absolute inset-0 bg-grid opacity-10"></div>
+  <div class="fixed inset-0 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden pointer-events-none z-0">
+    <div class="absolute inset-0 bg-grid opacity-5"></div>
     {#each Array(5) as _, i}
       <div
-        class="absolute rounded-full bg-gradient-to-r from-blue-100/30 to-purple-100/30 blur-2xl"
+        class="absolute rounded-full bg-gradient-to-r from-gray-700/30 to-gray-600/30 blur-2xl"
         style="
           width: {200 + i * 50}px;
           height: {200 + i * 50}px;
@@ -173,84 +214,164 @@
     bind:this={messageContainer}
     class="space-y-3 sm:space-y-4 relative z-10 pb-24 sm:pb-28"
   >
-    {#if messages.length === 0}
-      <div class="flex flex-col items-center justify-center py-8 sm:py-12 text-gray-500">
-        <svg class="w-16 h-16 sm:w-20 sm:h-20 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
-        <p class="text-sm sm:text-base font-medium mb-1">No messages yet</p>
-        <p class="text-xs sm:text-sm text-gray-400">Start the conversation by sending a message!</p>
-      </div>
-    {:else}
-      {#each messages as message (message.id)}
-        <div 
-          class="message-container animate-message-in w-full"
-          class:sent={isOwnMessage(message)}
-          class:received={!isOwnMessage(message)}
-          on:touchstart={(e) => handleTouchStart(e, message)}
-          on:touchmove={(e) => handleTouchMove(e, e.currentTarget)}
-          on:touchend={(e) => handleTouchEnd(e, message, e.currentTarget)}
-          style="touch-action: pan-y; transition: transform 0.2s ease, opacity 0.2s ease;"
-        >
-          <div class="flex items-start gap-2 sm:gap-3 w-full">
-            <!-- Reply indicator -->
-            {#if activeMessageId === message.id}
-              <div 
-                class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 text-indigo-600"
-                transition:fade
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
-              </div>
-            {/if}
+  {#if messages.length === 0}
+    <div class="flex flex-col items-center justify-center py-8 sm:py-12 text-gray-400">
+      <svg class="w-16 h-16 sm:w-20 sm:h-20 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+      </svg>
+      <p class="text-sm sm:text-base font-medium mb-1 text-gray-300">No messages yet</p>
+      <p class="text-xs sm:text-sm text-gray-500">Start the conversation by sending a message!</p>
+    </div>
+  {:else}
+    {#each messages as message (message.id)}
+      <div 
+        class="message-container animate-message-in w-full"
+        class:sent={isOwnMessage(message)}
+        class:received={!isOwnMessage(message)}
+        on:touchstart={(e) => handleTouchStart(e, message)}
+        on:touchmove={(e) => handleTouchMove(e, e.currentTarget)}
+        on:touchend={(e) => handleTouchEnd(e, message, e.currentTarget)}
+        style="touch-action: pan-y; transition: transform 0.2s ease, opacity 0.2s ease;"
+      >
+        <div class="flex items-start gap-2 sm:gap-3 w-full">
+          <!-- Reply indicator -->
+          {#if activeMessageId === message.id}
+            <div 
+              class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 text-indigo-400"
+              transition:fade
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
+            </div>
+          {/if}
 
-            <div class="flex-1 flex {isOwnMessage(message) ? 'justify-end' : 'justify-start'} w-full">
-              <div class="max-w-[85%] {isOwnMessage(message) ? 'ml-auto' : 'mr-auto'}">
-                <div class="flex flex-col {isOwnMessage(message) ? 'items-end' : 'items-start'}">
-                  <span class="text-sm sm:text-base text-gray-500 mb-1 {isOwnMessage(message) ? 'text-right' : 'text-left'} w-full">
-                    {message.isAnonymous ? 'Anonymous' : message.sender} • {formatTime(message.timestamp)}
-                  </span>
-                  <div class="rounded-lg p-3.5 sm:p-4 {
-                    isOwnMessage(message) 
-                      ? 'bg-blue-500 text-white shadow-blue-200/50' 
-                      : message.isAnonymous
-                        ? 'bg-gray-900 text-white shadow-gray-900/20 border-none'
-                        : 'bg-white/80 backdrop-blur-sm border border-gray-100 text-gray-900'
-                  } {message.type === 'meme' ? 'overflow-hidden' : ''} shadow-lg hover:shadow-xl transition-shadow">
-                    {#if message.type === 'meme' && message.imageUrl}
-                      <div class="space-y-2">
-                        <img
-                          src={message.imageUrl}
-                          alt="Shared meme"
-                          class="max-h-48 sm:max-h-64 w-auto rounded-lg cursor-zoom-in hover:opacity-90 transition-opacity"
-                        />
-                        {#if message.caption}
-                          <p class="text-sm sm:text-base break-words leading-relaxed">{message.caption}</p>
+          <div class="flex-1 flex {isOwnMessage(message) ? 'justify-end' : 'justify-start'} w-full">
+            <div class="max-w-[85%] {isOwnMessage(message) ? 'ml-auto' : 'mr-auto'} flex items-start gap-2 sm:gap-3">
+              {#if !isOwnMessage(message) && !message.isAnonymous}
+                <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-transparent border-2 border-gray-600/50 shadow-[0_0_10px_rgba(75,85,99,0.2)] flex items-center justify-center text-sm sm:text-base font-medium text-gray-300">
+                  {message.sender[0].toUpperCase()}
+                </div>
+              {/if}
+              <div class="flex flex-col {isOwnMessage(message) ? 'items-end' : 'items-start'}">
+                <div class="{
+                  isOwnMessage(message) 
+                    ? 'bg-transparent border-2 border-indigo-500/50 text-gray-100 shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:border-indigo-400/60' 
+                    : message.isAnonymous
+                      ? 'bg-gray-900 text-white shadow-gray-900/20 border-none'
+                      : 'bg-transparent border-2 border-gray-600/50 text-gray-100 shadow-[0_0_15px_rgba(75,85,99,0.2)] hover:shadow-[0_0_20px_rgba(75,85,99,0.3)] hover:border-gray-500/60'
+                } {message.type === 'meme' ? 'overflow-hidden' : ''} shadow-lg transition-all duration-200 {
+                  isOwnMessage(message)
+                    ? 'rounded-l-lg rounded-tr-sm rounded-br-lg'
+                    : 'rounded-r-lg rounded-tl-sm rounded-bl-lg'
+                } p-2.5 sm:p-3">
+                  <div class="flex flex-col gap-1.5">
+                    {#if message.isAnonymous}
+                      <div class="relative">
+                        <div class="flex flex-col gap-1.5">
+                          <span class="text-xs sm:text-sm text-gray-400">
+                            Anonymous
+                          </span>
+                          {#if message.type === 'meme' && message.imageUrl}
+                            <div class="space-y-2">
+                              <img
+                                src={message.imageUrl}
+                                alt="Shared meme"
+                                class="max-h-48 sm:max-h-64 w-auto rounded-md cursor-zoom-in hover:opacity-90 transition-opacity"
+                              />
+                              {#if message.caption}
+                                <p class="text-sm sm:text-base break-words leading-relaxed">{message.caption}</p>
+                              {/if}
+                            </div>
+                          {:else}
+                            <p class="text-sm sm:text-base break-words leading-relaxed">{message.text}</p>
+                          {/if}
+                          <span class="text-[10px] sm:text-xs text-gray-400 self-end">
+                            {formatTime(message.timestamp)}
+                          </span>
+                        </div>
+
+                        <!-- Anonymous message overlay -->
+                        {#if !revealedMessages.has(message.id)}
+                          <div 
+                            class="absolute inset-0 bg-gray-900/95 backdrop-blur-sm rounded-lg flex items-center justify-center cursor-pointer group transition-all duration-150"
+                            on:click|stopPropagation={() => toggleReveal(message.id)}
+                            transition:fade={{ duration: 150 }}
+                          >
+                            <div class="transform group-hover:scale-110 transition-transform duration-150">
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                class="h-6 w-6 sm:h-8 sm:w-8 text-gray-300 group-hover:text-gray-100" 
+                                fill="none" 
+                                viewBox="0 0 24 24" 
+                                stroke="currentColor"
+                              >
+                                <path 
+                                  stroke-linecap="round" 
+                                  stroke-linejoin="round" 
+                                  stroke-width="2" 
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+                                />
+                                <path 
+                                  stroke-linecap="round" 
+                                  stroke-linejoin="round" 
+                                  stroke-width="2" 
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" 
+                                />
+                              </svg>
+                            </div>
+                          </div>
                         {/if}
                       </div>
                     {:else}
-                      <p class="text-sm sm:text-base break-words leading-relaxed">{message.text}</p>
+                      <div class="flex flex-col gap-1.5">
+                        <span class="text-xs sm:text-sm text-gray-400">
+                          {message.sender}
+                        </span>
+                        {#if message.type === 'meme' && message.imageUrl}
+                          <div class="space-y-2">
+                            <img
+                              src={message.imageUrl}
+                              alt="Shared meme"
+                              class="max-h-48 sm:max-h-64 w-auto rounded-md cursor-zoom-in hover:opacity-90 transition-opacity"
+                            />
+                            {#if message.caption}
+                              <p class="text-sm sm:text-base break-words leading-relaxed">{message.caption}</p>
+                            {/if}
+                          </div>
+                        {:else}
+                          <p class="text-sm sm:text-base break-words leading-relaxed">{message.text}</p>
+                        {/if}
+                        <span class="text-[10px] sm:text-xs text-gray-400 self-end">
+                          {formatTime(message.timestamp)}
+                        </span>
+                      </div>
                     {/if}
                   </div>
                 </div>
               </div>
+              {#if isOwnMessage(message) && !message.isAnonymous}
+                <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-transparent border-2 border-indigo-500/50 shadow-[0_0_10px_rgba(99,102,241,0.2)] flex items-center justify-center text-sm sm:text-base font-medium text-gray-300">
+                  {message.sender[0].toUpperCase()}
+                </div>
+              {/if}
             </div>
           </div>
         </div>
-      {/each}
-    {/if}
-
-    <!-- Typing indicator -->
-    {#if isTyping}
-      <div class="p-4" transition:fade>
-        <div class="typing-indicator">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
       </div>
-    {/if}
+    {/each}
+  {/if}
+
+  <!-- Typing indicator -->
+  {#if isTyping}
+    <div class="p-4" transition:fade>
+      <div class="typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  {/if}
   </div>
 </div>
 
@@ -263,15 +384,15 @@
 
   .bg-grid {
     background-image: 
-      linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+      linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
     background-size: 20px 20px;
   }
 
   /* Custom scrollbar styles */
   div {
     scrollbar-width: thin;
-    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+    scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
   }
   
   div::-webkit-scrollbar {
@@ -283,7 +404,7 @@
   }
   
   div::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.5);
+    background-color: rgba(156, 163, 175, 0.3);
     border-radius: 3px;
   }
 
@@ -348,7 +469,7 @@
     display: flex;
     gap: 4px;
     padding: 8px 12px;
-    background: #f3f4f6;
+    background: rgba(75, 85, 99, 0.4);
     border-radius: 12px;
     width: fit-content;
   }
@@ -368,4 +489,4 @@
     0%, 80%, 100% { transform: scale(0); }
     40% { transform: scale(1); }
   }
-</style>
+</style> 
