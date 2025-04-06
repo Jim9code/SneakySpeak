@@ -23,6 +23,8 @@
 
   let messageContainer: HTMLElement;
   let shouldAutoScroll = true;
+  let isUserScrolling = false;
+  let scrollTimeout: ReturnType<typeof setTimeout>;
   let hasOverflow = false;
   let previousMessagesLength = 0;
   let isTyping = false;
@@ -30,6 +32,7 @@
   let swipeStartY = 0;
   let activeMessageId: number | null = null;
   let swipeThreshold = 50; // pixels to trigger reply action
+  let showScrollButton = false; // New variable for scroll button visibility
 
   // Track revealed anonymous messages
   let revealedMessages: Set<number> = new Set();
@@ -55,13 +58,37 @@
   function isNearBottom() {
     if (!messageContainer) return false;
     
-    const threshold = 100; // pixels from bottom
+    const threshold = 150; // pixels from bottom
     const position = messageContainer.scrollHeight - messageContainer.scrollTop - messageContainer.clientHeight;
     return position <= threshold;
   }
 
+  function scrollToBottom(behavior: ScrollBehavior = 'smooth') {
+    if (!messageContainer) return;
+    
+    requestAnimationFrame(() => {
+      messageContainer.scrollTo({
+        top: messageContainer.scrollHeight,
+        behavior
+      });
+    });
+  }
+
   function handleScroll() {
-    shouldAutoScroll = isNearBottom();
+    // Clear existing timeout
+    if (scrollTimeout) clearTimeout(scrollTimeout);
+    
+    isUserScrolling = true;
+    const wasNearBottom = isNearBottom();
+    
+    // Update scroll button visibility
+    showScrollButton = !wasNearBottom;
+    
+    // Set a timeout to detect when scrolling ends
+    scrollTimeout = setTimeout(() => {
+      isUserScrolling = false;
+      shouldAutoScroll = wasNearBottom;
+    }, 150);
   }
 
   function handleTouchStart(event: TouchEvent, message: Message) {
@@ -137,6 +164,12 @@
     hideTimeouts.set(messageId, timeout);
   }
 
+  function handleScrollButtonClick() {
+    scrollToBottom();
+    showScrollButton = false;
+    shouldAutoScroll = true;
+  }
+
   // Cleanup timeouts on component destroy
   onDestroy(() => {
     hideTimeouts.forEach(timeout => clearTimeout(timeout));
@@ -145,17 +178,24 @@
   // Watch for changes in messages array
   $: if (messages && messageContainer) {
     hasOverflow = checkOverflow();
+    
+    // If new messages arrived
     if (messages.length > previousMessagesLength) {
-      if (isNearBottom() || (hasOverflow && !shouldAutoScroll)) {
-        shouldAutoScroll = true;
-        setTimeout(() => {
-          messageContainer.scrollTo({
-            top: messageContainer.scrollHeight,
-            behavior: 'smooth'
+      // Auto-scroll if we're near the bottom or if auto-scroll is enabled
+      if (shouldAutoScroll && !isUserScrolling) {
+        // Use immediate scroll for own messages, smooth scroll for others
+        const lastMessage = messages[messages.length - 1];
+        const behavior = isOwnMessage(lastMessage) ? 'auto' : 'smooth';
+        
+        // Use requestAnimationFrame to ensure DOM is updated
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            scrollToBottom(behavior);
           });
-        }, 100);
+        });
       }
     }
+    
     previousMessagesLength = messages.length;
   }
 
@@ -164,17 +204,17 @@
       messageContainer.addEventListener('scroll', handleScroll);
       hasOverflow = checkOverflow();
       previousMessagesLength = messages.length;
+      
+      // Initial scroll to bottom with a small delay to ensure content is rendered
+      setTimeout(() => {
+        scrollToBottom('auto');
+      }, 100);
 
       // Subscribe to typing events
       const unsubscribeTypingStart = socketService.onTypingStart(() => {
         isTyping = true;
-        if (shouldAutoScroll) {
-          setTimeout(() => {
-            messageContainer?.scrollTo({
-              top: messageContainer.scrollHeight,
-              behavior: 'smooth'
-            });
-          }, 100);
+        if (shouldAutoScroll && !isUserScrolling) {
+          scrollToBottom();
         }
       });
 
@@ -183,6 +223,7 @@
       });
 
       return () => {
+        if (scrollTimeout) clearTimeout(scrollTimeout);
         messageContainer.removeEventListener('scroll', handleScroll);
         unsubscribeTypingStart();
         unsubscribeTypingStop();
@@ -191,7 +232,7 @@
   });
 </script>
 
-<div class="chat-container relative">
+<div class="h-full flex flex-col overflow-hidden relative">
   <!-- Animated background elements -->
   <div class="fixed inset-0 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden pointer-events-none z-0">
     <div class="absolute inset-0 bg-grid opacity-5"></div>
@@ -212,7 +253,7 @@
   <!-- Messages content -->
   <div 
     bind:this={messageContainer}
-    class="space-y-3 sm:space-y-4 relative z-10 pb-24 sm:pb-28"
+    class="flex-1 overflow-y-auto overflow-x-hidden px-4 space-y-3 sm:space-y-4 relative z-10 scroll-smooth"
   >
   {#if messages.length === 0}
     <div class="flex flex-col items-center justify-center py-8 sm:py-12 text-gray-400">
@@ -372,27 +413,45 @@
       </div>
     </div>
   {/if}
+
+  <!-- Scroll to bottom button -->
+  {#if showScrollButton}
+    <button
+      type="button"
+      class="fixed bottom-24 sm:bottom-28 right-4 sm:right-6 z-50 p-2.5 sm:p-3 bg-indigo-600/90 hover:bg-indigo-500 text-white rounded-full shadow-lg hover:shadow-xl backdrop-blur-sm transition-all duration-200 group"
+      on:click={handleScrollButtonClick}
+      transition:fade={{ duration: 200 }}
+    >
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        class="h-5 w-5 sm:h-6 sm:w-6 transform group-hover:translate-y-0.5 transition-transform" 
+        fill="none" 
+        viewBox="0 0 24 24" 
+        stroke="currentColor"
+      >
+        <path 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          stroke-width="2" 
+          d="M19 14l-7 7m0 0l-7-7m7 7V3"
+        />
+      </svg>
+      <span class="sr-only">Scroll to bottom</span>
+    </button>
+  {/if}
   </div>
 </div>
 
 <style>
-  .chat-container {
-    height: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .bg-grid {
-    background-image: 
-      linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-
   /* Custom scrollbar styles */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
   div {
     scrollbar-width: thin;
     scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+    -webkit-overflow-scrolling: touch;
   }
   
   div::-webkit-scrollbar {
@@ -488,5 +547,14 @@
   @keyframes bounce {
     0%, 80%, 100% { transform: scale(0); }
     40% { transform: scale(1); }
+  }
+
+  /* Add smooth transition for scroll button */
+  button {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  }
+
+  button:hover {
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
   }
 </style> 
