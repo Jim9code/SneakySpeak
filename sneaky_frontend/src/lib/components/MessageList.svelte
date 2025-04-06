@@ -1,6 +1,9 @@
 <script lang="ts">
   import { authStore } from '$lib/stores/authStore';
   import { onMount } from 'svelte';
+  import { socketService } from '$lib/services/socketService';
+  import { fade, slide } from 'svelte/transition';
+  import { createEventDispatcher } from 'svelte';
 
   interface Message {
     id: number;
@@ -21,6 +24,16 @@
   let messageContainer: HTMLElement;
   let shouldAutoScroll = true;
   let hasOverflow = false;
+  let previousMessagesLength = 0;
+  let isTyping = false;
+  let swipeStartX = 0;
+  let swipeStartY = 0;
+  let activeMessageId: number | null = null;
+  let swipeThreshold = 50; // pixels to trigger reply action
+
+  const dispatch = createEventDispatcher<{
+    reply: Message;
+  }>();
 
   function formatTime(date: Date): string {
     return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -47,27 +60,92 @@
     shouldAutoScroll = isNearBottom();
   }
 
-  $: if (messages && messageContainer) {
-    // Check if content causes overflow
-    hasOverflow = checkOverflow();
-    
-    // Only auto-scroll if we have overflow and user is near bottom
-    if (hasOverflow && shouldAutoScroll && isNearBottom()) {
-      setTimeout(() => {
-        messageContainer.scrollTo({
-          top: messageContainer.scrollHeight,
-          behavior: 'smooth'
-        });
-      }, 100);
+  function handleTouchStart(event: TouchEvent, message: Message) {
+    swipeStartX = event.touches[0].clientX;
+    swipeStartY = event.touches[0].clientY;
+    activeMessageId = message.id;
+  }
+
+  function handleTouchMove(event: TouchEvent, messageElement: HTMLElement) {
+    if (!activeMessageId) return;
+
+    const touch = event.touches[0];
+    const deltaX = touch.clientX - swipeStartX;
+    const deltaY = Math.abs(touch.clientY - swipeStartY);
+
+    // If vertical movement is greater than horizontal, cancel swipe
+    if (deltaY > Math.abs(deltaX)) {
+      activeMessageId = null;
+      return;
     }
+
+    // Only allow right swipe for reply
+    if (deltaX > 0) {
+      const swipePercent = Math.min(deltaX / swipeThreshold, 1);
+      messageElement.style.transform = `translateX(${deltaX}px)`;
+      messageElement.style.opacity = (1 - swipePercent * 0.3).toString();
+    }
+  }
+
+  function handleTouchEnd(event: TouchEvent, message: Message, messageElement: HTMLElement) {
+    if (!activeMessageId) return;
+
+    const deltaX = event.changedTouches[0].clientX - swipeStartX;
+    messageElement.style.transform = '';
+    messageElement.style.opacity = '1';
+
+    if (deltaX >= swipeThreshold) {
+      dispatch('reply', message);
+    }
+
+    activeMessageId = null;
+  }
+
+  // Watch for changes in messages array
+  $: if (messages && messageContainer) {
+    hasOverflow = checkOverflow();
+    if (messages.length > previousMessagesLength) {
+      if (isNearBottom() || (hasOverflow && !shouldAutoScroll)) {
+        shouldAutoScroll = true;
+        setTimeout(() => {
+          messageContainer.scrollTo({
+            top: messageContainer.scrollHeight,
+            behavior: 'smooth'
+          });
+        }, 100);
+      }
+    }
+    previousMessagesLength = messages.length;
   }
 
   onMount(() => {
     if (messageContainer) {
       messageContainer.addEventListener('scroll', handleScroll);
-      // Initial overflow check
       hasOverflow = checkOverflow();
-      return () => messageContainer.removeEventListener('scroll', handleScroll);
+      previousMessagesLength = messages.length;
+
+      // Subscribe to typing events
+      const unsubscribeTypingStart = socketService.onTypingStart(() => {
+        isTyping = true;
+        if (shouldAutoScroll) {
+          setTimeout(() => {
+            messageContainer?.scrollTo({
+              top: messageContainer.scrollHeight,
+              behavior: 'smooth'
+            });
+          }, 100);
+        }
+      });
+
+      const unsubscribeTypingStop = socketService.onTypingStop(() => {
+        isTyping = false;
+      });
+
+      return () => {
+        messageContainer.removeEventListener('scroll', handleScroll);
+        unsubscribeTypingStart();
+        unsubscribeTypingStop();
+      };
     }
   });
 </script>
@@ -109,8 +187,24 @@
           class="message-container animate-message-in w-full"
           class:sent={isOwnMessage(message)}
           class:received={!isOwnMessage(message)}
+          on:touchstart={(e) => handleTouchStart(e, message)}
+          on:touchmove={(e) => handleTouchMove(e, e.currentTarget)}
+          on:touchend={(e) => handleTouchEnd(e, message, e.currentTarget)}
+          style="touch-action: pan-y; transition: transform 0.2s ease, opacity 0.2s ease;"
         >
           <div class="flex items-start gap-2 sm:gap-3 w-full">
+            <!-- Reply indicator -->
+            {#if activeMessageId === message.id}
+              <div 
+                class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 text-indigo-600"
+                transition:fade
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            {/if}
+
             <div class="flex-1 flex {isOwnMessage(message) ? 'justify-end' : 'justify-start'} w-full">
               <div class="max-w-[85%] {isOwnMessage(message) ? 'ml-auto' : 'mr-auto'}">
                 <div class="flex flex-col {isOwnMessage(message) ? 'items-end' : 'items-start'}">
@@ -145,6 +239,17 @@
           </div>
         </div>
       {/each}
+    {/if}
+
+    <!-- Typing indicator -->
+    {#if isTyping}
+      <div class="p-4" transition:fade>
+        <div class="typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
     {/if}
   </div>
 </div>
@@ -187,6 +292,9 @@
     opacity: 0;
     transform: scale(0.5);
     animation: message-pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    position: relative;
+    touch-action: pan-y;
+    will-change: transform;
   }
 
   .sent {
@@ -233,5 +341,31 @@
       opacity: 1;
       transform: scale(1) translateY(0);
     }
+  }
+
+  /* Typing indicator styles */
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    width: fit-content;
+  }
+
+  .typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: #6366f1;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out;
+  }
+
+  .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+  .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
   }
 </style>

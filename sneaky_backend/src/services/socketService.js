@@ -146,6 +146,17 @@ async function initializeSocket(server) {
         socket.on('disconnect', () => {
             console.log('[Socket Debug] User disconnected:', socket.id);
         });
+
+        // Handle typing events
+        socket.on('typing', () => {
+            console.log('[Socket Debug] User typing:', socket.id);
+            socket.to('main_room').emit('user_typing');
+        });
+
+        socket.on('stop_typing', () => {
+            console.log('[Socket Debug] User stopped typing:', socket.id);
+            socket.to('main_room').emit('user_stop_typing');
+        });
     });
 
     return io;

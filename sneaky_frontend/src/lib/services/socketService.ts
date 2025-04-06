@@ -19,6 +19,10 @@ class SocketService {
     private recentMessagesHandlers: ((messages: Message[]) => void)[] = [];
     private coinBalanceHandlers: ((data: { coins: number }) => void)[] = [];
     private errorHandlers: ((error: { message: string }) => void)[] = [];
+    private typingStartHandlers: (() => void)[] = [];
+    private typingStopHandlers: (() => void)[] = [];
+    private reconnectAttempts = 0;
+    private maxReconnectAttempts = 5;
 
     connect() {
         if (this.socket?.connected) return;
@@ -34,8 +38,9 @@ class SocketService {
         this.socket = io(backendUrl, {
             withCredentials: true,
             reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000
+            reconnectionAttempts: this.maxReconnectAttempts,
+            reconnectionDelay: 1000,
+            timeout: 10000
         });
 
         this.setupEventListeners();
@@ -46,6 +51,7 @@ class SocketService {
 
         this.socket.on('connect', () => {
             console.log('Connected to chat server');
+            this.reconnectAttempts = 0;
             const authState = get(authStore);
             console.log('Current auth state:', authState);
             
@@ -61,6 +67,28 @@ class SocketService {
                 });
             } else {
                 console.error('No user found in auth store');
+            }
+        });
+
+        this.socket.on('reconnect', (attemptNumber: number) => {
+            console.log('Reconnected to chat server, attempt:', attemptNumber);
+            const authState = get(authStore);
+            if (authState.user) {
+                this.socket?.emit('join_chat', {
+                    userId: authState.user.id,
+                    username: authState.user.username
+                });
+            }
+        });
+
+        this.socket.on('reconnect_error', (error: any) => {
+            console.error('Reconnection error:', error);
+            this.reconnectAttempts++;
+            if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                console.error('Max reconnection attempts reached');
+                this.errorHandlers.forEach(handler => 
+                    handler({ message: 'Connection lost. Please refresh the page.' })
+                );
             }
         });
 
@@ -100,6 +128,16 @@ class SocketService {
         this.socket.on('connect_error', (error: any) => {
             console.error('Socket connection error:', error);
         });
+
+        this.socket.on('user_typing', () => {
+            console.log('Someone is typing...');
+            this.typingStartHandlers.forEach(handler => handler());
+        });
+
+        this.socket.on('user_stop_typing', () => {
+            console.log('Someone stopped typing');
+            this.typingStopHandlers.forEach(handler => handler());
+        });
     }
 
     onMessage(handler: (message: Message) => void) {
@@ -128,6 +166,30 @@ class SocketService {
         return () => {
             this.errorHandlers = this.errorHandlers.filter(h => h !== handler);
         };
+    }
+
+    onTypingStart(handler: () => void) {
+        this.typingStartHandlers.push(handler);
+        return () => {
+            this.typingStartHandlers = this.typingStartHandlers.filter(h => h !== handler);
+        };
+    }
+
+    onTypingStop(handler: () => void) {
+        this.typingStopHandlers.push(handler);
+        return () => {
+            this.typingStopHandlers = this.typingStopHandlers.filter(h => h !== handler);
+        };
+    }
+
+    emitTyping() {
+        if (!this.socket?.connected) return;
+        this.socket.emit('typing');
+    }
+
+    emitStopTyping() {
+        if (!this.socket?.connected) return;
+        this.socket.emit('stop_typing');
     }
 
     sendMessage(messageData: Partial<Message>) {

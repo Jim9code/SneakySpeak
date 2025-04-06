@@ -1,16 +1,28 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import EmojiPicker from './EmojiPicker.svelte';
-  import { onMount } from 'svelte';
+  import { socketService } from '$lib/services/socketService';
+  import { API_URL } from '$lib/config';
+  import { fade, slide } from 'svelte/transition';
+  import { authStore } from '$lib/stores/authStore';
 
   export let isAnonymous = false;
-  export let coins = 10; // Default to 10 coins for new users
+  export let replyTo: {
+    id: number;
+    text: string;
+    sender: string;
+    isAnonymous: boolean;
+    type?: 'text' | 'meme';
+    imageUrl?: string;
+    caption?: string;
+  } | null = null;
 
   const dispatch = createEventDispatcher<{
     sendMessage: string;
     sendImage: { file: File; caption?: string };
     toggleAnonymous: void;
     navigateToPlans: void;
+    cancelReply: void;
   }>();
   
   let message = '';
@@ -20,6 +32,19 @@
   let fileInput: HTMLInputElement;
   let emojiPickerContainer: HTMLDivElement;
   let emojiButton: HTMLButtonElement;
+  let typingTimeout: ReturnType<typeof setTimeout>;
+
+  // Get coins from auth store
+  $: coins = $authStore.user?.coins ?? 0;
+
+  // Handle reply prefill
+  $: if (replyTo) {
+    const quotePrefix = `> ${replyTo.isAnonymous ? 'Anonymous' : replyTo.sender}: `;
+    const quoteContent = replyTo.type === 'meme' 
+      ? (replyTo.caption || '[shared a meme]')
+      : replyTo.text;
+    message = `${quotePrefix}${quoteContent}\n\n`;
+  }
 
   const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -35,6 +60,29 @@
     return coins >= getCost();
   }
 
+  function handleInput() {
+    if (message.length > 0) {
+      // Clear any existing timeout
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+      
+      // Emit typing event
+      socketService.emitTyping();
+      
+      // Set a new timeout
+      typingTimeout = setTimeout(() => {
+        socketService.emitStopTyping();
+      }, 1000); // Stop typing after 1 second of no input
+    } else {
+      // If message is empty, stop typing immediately
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+      socketService.emitStopTyping();
+    }
+  }
+
   onMount(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (showEmojiPicker && emojiPickerContainer && !emojiPickerContainer.contains(event.target as Node) && !emojiButton.contains(event.target as Node)) {
@@ -46,6 +94,11 @@
 
     return () => {
       document.removeEventListener('click', handleClickOutside);
+      // Cleanup timeout on component destroy
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+      socketService.emitStopTyping();
     };
   });
 
@@ -59,6 +112,10 @@
       e.preventDefault();
       sendMessage();
     }
+  }
+
+  function handleCancelReply() {
+    dispatch('cancelReply');
   }
 
   function sendMessage() {
@@ -85,6 +142,11 @@
       if (isAnonymous) {
         coins -= ANONYMOUS_TEXT_COST;
       }
+    }
+
+    // Clear reply after sending
+    if (replyTo) {
+      handleCancelReply();
     }
   }
 
@@ -129,6 +191,35 @@
 </script>
 
 <div class="bg-white shadow-lg rounded-lg p-3 sm:p-4 relative">
+  {#if replyTo}
+    <div 
+      class="flex items-center gap-2 p-2 mb-3 bg-gray-50 rounded-lg border border-gray-200"
+      transition:slide
+    >
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-medium text-gray-900">
+            Replying to {replyTo.isAnonymous ? 'Anonymous' : replyTo.sender}
+          </span>
+        </div>
+        <p class="text-sm text-gray-500 truncate">
+          {replyTo.type === 'meme' 
+            ? (replyTo.caption || '[shared a meme]')
+            : replyTo.text}
+        </p>
+      </div>
+      <button
+        type="button"
+        class="p-1 text-gray-400 hover:text-gray-600 focus:outline-none"
+        on:click={handleCancelReply}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+  {/if}
+
   {#if selectedFile}
     <div class="space-y-3">
       <div class="relative">
@@ -255,7 +346,8 @@
         type="text"
         bind:value={message}
         on:keydown={handleKeyDown}
-          placeholder={isAnonymous ? `Anonymous message (${ANONYMOUS_TEXT_COST} coins)` : "Type a message..."}
+        on:input={handleInput}
+        placeholder={isAnonymous ? `Anonymous message (${ANONYMOUS_TEXT_COST} coins)` : "Type a message..."}
         class="w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
       />
     </div>

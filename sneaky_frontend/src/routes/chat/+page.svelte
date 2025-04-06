@@ -35,6 +35,7 @@
   let showIntro = true;
   let mounted = false;
   let showUsernameModal = false;
+  let replyTo: Message | null = null;
 
   // Access the authenticated user
   $: user = $authStore.user;
@@ -77,16 +78,21 @@
 
     // Subscribe to coin balance updates
     const unsubscribeCoinBalance = socketService.onCoinBalance(({ coins }) => {
+      console.log('Received coin balance update:', coins);
       authStore.updateCoins(coins);
     });
 
     // Subscribe to socket errors
     const unsubscribeError = socketService.onError((error) => {
-      // You could show a toast notification here
       console.error('Socket error:', error);
+      if (error.message.includes('Connection lost')) {
+        // Try to reconnect
+        socketService.connect();
+      }
       alert(error.message);
     });
 
+    // Cleanup function
     return () => {
       unsubscribeRecent();
       unsubscribeNew();
@@ -95,6 +101,14 @@
       socketService.disconnect();
     };
   });
+
+  function handleReply(event: CustomEvent<Message>) {
+    replyTo = event.detail;
+  }
+
+  function handleCancelReply() {
+    replyTo = null;
+  }
 
   function handleSendMessage(event: MessageEvent) {
     if (!user) return;
@@ -105,10 +119,12 @@
       sender: isAnonymous ? 'Anonymous' : user.username,
       isAnonymous,
       type: 'text' as const,
-      timestamp: new Date()
+      timestamp: new Date(),
+      replyTo: replyTo?.id // Add reference to replied message
     };
     
     socketService.sendMessage(messageData);
+    replyTo = null; // Clear reply after sending
   }
 
   async function handleSendImage(event: ImageEvent) {
@@ -222,17 +238,21 @@
       <main class="flex-1 overflow-hidden bg-gray-50 flex flex-col relative">
         <div class="max-w-7xl mx-auto w-full h-full flex flex-col p-2 sm:p-4">
           <div class="flex-1 overflow-y-auto min-h-0 pb-[100px] sm:pb-[120px]">
-            <MessageList {messages} />
+            <MessageList 
+              {messages} 
+              on:reply={handleReply}
+            />
           </div>
           <div class="fixed bottom-0 left-0 right-0 bg-gray-50 p-2 sm:p-4 border-t border-gray-100 shadow-lg z-40">
             <div class="max-w-7xl mx-auto w-full">
               <MessageInput 
                 {isAnonymous}
-                {coins}
-                on:sendMessage={(e: MessageEvent) => handleSendMessage(e)}
-                on:sendImage={(e: ImageEvent) => handleSendImage(e)}
+                {replyTo}
+                on:sendMessage={handleSendMessage}
+                on:sendImage={handleSendImage}
                 on:toggleAnonymous={handleToggleAnonymous}
                 on:navigateToPlans={handleNavigateToPlans}
+                on:cancelReply={handleCancelReply}
               />
             </div>
           </div>
