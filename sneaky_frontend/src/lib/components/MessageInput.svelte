@@ -44,11 +44,11 @@
 
   // Handle reply prefill
   $: if (replyTo) {
-    const quotePrefix = `> ${replyTo.isAnonymous ? 'Anonymous' : replyTo.sender}: `;
+    const quotePrefix = `@ ${replyTo.isAnonymous ? 'Anonymous' : replyTo.sender}: `;
     const quoteContent = replyTo.type === 'meme' 
       ? (replyTo.caption || '[shared a meme]')
       : replyTo.text;
-    message = `${quotePrefix}${quoteContent}\n\n`;
+    message = `${quotePrefix}${quoteContent}\n\n 👉`;
   }
 
   const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];

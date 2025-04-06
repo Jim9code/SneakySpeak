@@ -292,7 +292,7 @@
               {#if !isOwnMessage(message) && !message.isAnonymous}
                 <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-transparent border-2 border-gray-600/50 shadow-[0_0_10px_rgba(75,85,99,0.2)] flex items-center justify-center text-sm sm:text-base font-medium text-gray-300">
                   {message.sender[0].toUpperCase()}
-                </div>
+          </div>
               {/if}
               <div class="flex flex-col {isOwnMessage(message) ? 'items-end' : 'items-start'}">
                 <div class="{
@@ -312,7 +312,7 @@
                         <div class="flex flex-col gap-1.5">
                           <span class="text-xs sm:text-sm text-gray-400">
                             Anonymous
-                          </span>
+              </span>
                           {#if message.type === 'meme' && message.imageUrl}
                             <div class="space-y-2">
                               <img
@@ -328,9 +328,9 @@
                             <p class="text-sm sm:text-base break-words leading-relaxed">{message.text}</p>
                           {/if}
                           <span class="text-[10px] sm:text-xs text-gray-400 self-end">
-                            {formatTime(message.timestamp)}
-                          </span>
-                        </div>
+                {formatTime(message.timestamp)}
+              </span>
+            </div>
 
                         <!-- Anonymous message overlay -->
                         {#if !revealedMessages.has(message.id)}
@@ -369,18 +369,18 @@
                         <span class="text-xs sm:text-sm text-gray-400">
                           {message.sender}
                         </span>
-                        {#if message.type === 'meme' && message.imageUrl}
-                          <div class="space-y-2">
-                            <img
-                              src={message.imageUrl}
-                              alt="Shared meme"
+              {#if message.type === 'meme' && message.imageUrl}
+                <div class="space-y-2">
+                  <img
+                    src={message.imageUrl}
+                    alt="Shared meme"
                               class="max-h-48 sm:max-h-64 w-auto rounded-md cursor-zoom-in hover:opacity-90 transition-opacity"
-                            />
-                            {#if message.caption}
+                  />
+                  {#if message.caption}
                               <p class="text-sm sm:text-base break-words leading-relaxed">{message.caption}</p>
-                            {/if}
-                          </div>
-                        {:else}
+                  {/if}
+                </div>
+              {:else}
                           <p class="text-sm sm:text-base break-words leading-relaxed">{message.text}</p>
                         {/if}
                         <span class="text-[10px] sm:text-xs text-gray-400 self-end">
