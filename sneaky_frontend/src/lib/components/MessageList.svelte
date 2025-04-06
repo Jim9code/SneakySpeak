@@ -253,7 +253,7 @@
   <!-- Messages content -->
   <div 
     bind:this={messageContainer}
-    class="flex-1 overflow-y-auto overflow-x-hidden px-4 space-y-3 sm:space-y-4 relative z-10 scroll-smooth"
+    class="flex-1 overflow-y-auto overflow-x-hidden px-4 space-y-3 sm:space-y-4 relative z-10 scroll-smooth pb-24 sm:pb-28"
   >
   {#if messages.length === 0}
     <div class="flex flex-col items-center justify-center py-8 sm:py-12 text-gray-400">
