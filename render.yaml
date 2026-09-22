@@ -29,9 +29,7 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-      - key: EMAIL_USER
-        sync: false
-      - key: EMAIL_APP_PASSWORD
+      - key: RESEND_API_KEY
         sync: false
       - key: PAYSTACK_SECRET_KEY
         sync: false
