@@ -43,18 +43,22 @@
       {#if showMascot}
         <div 
           in:fly={{ y: 50, duration: 800, easing: (t) => --t * t * t + 1 }}
-          class="text-8xl mb-6 transform hover:scale-110 transition-transform filter drop-shadow-glow"
+          class="mb-6 transform hover:scale-105 transition-transform flex justify-center"
         >
-          🤫
+          <img 
+            src="/logo.png" 
+            alt="SneakySpeak Logo" 
+            class="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl shadow-2xl border border-indigo-500/40 drop-shadow-glow object-cover" 
+          />
         </div>
       {/if}
 
       {#if showLogo}
         <h1 
           in:fly={{ y: -30, duration: 600 }}
-          class="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-indigo-200 mb-4 tracking-tight filter drop-shadow-glow"
+          class="text-4xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-300 to-indigo-200 mb-3 tracking-tight filter drop-shadow-glow"
         >
-          SneakChat
+          SneakySpeak
         </h1>
       {/if}
 

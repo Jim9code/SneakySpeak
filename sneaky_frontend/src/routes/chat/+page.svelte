@@ -193,9 +193,9 @@
         <div class="max-w-7xl mx-auto">
           <!-- Top row with logo and logout -->
           <div class="flex items-center justify-between mb-2 sm:mb-0">
-            <div class="flex items-center gap-2">
-              <span class="text-xl sm:text-2xl">🤫</span>
-              <h1 class="text-lg sm:text-xl font-bold text-gray-100">SneakChat</h1>
+            <div class="flex items-center gap-2.5">
+              <img src="/logo.png" alt="SneakySpeak" class="w-8 h-8 rounded-lg shadow-sm border border-indigo-500/30 object-cover" />
+              <h1 class="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 to-indigo-100">SneakySpeak</h1>
             </div>
             <button
               on:click={handleLogout}

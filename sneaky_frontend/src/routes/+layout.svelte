@@ -1,8 +1,11 @@
 <script>
 	import '../app.css';
+	import InstallPrompt from '$lib/components/InstallPrompt.svelte';
 </script>
 
 <slot />
+
+<InstallPrompt />
 
 <style>
 	:global(html, body) {

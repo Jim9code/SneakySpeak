@@ -3,8 +3,10 @@
   import type { PageData } from './$types';
   import { authStore } from '$lib/stores/authStore';
   import { goto } from '$app/navigation';
-  import { PUBLIC_PAYSTACK_KEY } from '$env/static/public';
+  import { env } from '$env/dynamic/public';
   import { authService } from '$lib/services/authService';
+  
+  const PUBLIC_PAYSTACK_KEY = env.PUBLIC_PAYSTACK_KEY || '';
   
   export let data: PageData;
 
