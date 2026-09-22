@@ -31,7 +31,7 @@ const sendVerificationEmail = async (email, code) => {
     try {
         // Preferred method: Resend HTTP API (works seamlessly on Render free tier)
         if (process.env.RESEND_API_KEY) {
-            const fromEmail = process.env.RESEND_FROM_EMAIL || 'SneakySpeak <onboarding@resend.dev>';
+            const fromEmail = process.env.RESEND_FROM_EMAIL || 'SneakySpeak <noreply@truckbooks.site>';
             const response = await axios.post(
                 'https://api.resend.com/emails',
                 {
