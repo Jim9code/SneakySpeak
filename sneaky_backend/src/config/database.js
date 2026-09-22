@@ -60,6 +60,8 @@ const initializeDatabase = async () => {
         // Load models
         const User = require('../models/User');
         const Message = require('../models/Message');
+        const PaymentTransaction = require('../models/PaymentTransaction');
+        const Transaction = require('../models/Transaction');
         
         console.log('[Database] Syncing database models...');
         

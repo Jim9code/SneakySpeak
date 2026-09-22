@@ -8,15 +8,16 @@ dotenv.config();
 const requiredEnvVars = [
   'JWT_SECRET',
   'FRONTEND_URL',
-  'DB_HOST',
-  'DB_USER',
-  'DB_PASSWORD',
-  'DB_NAME',
   'PAYSTACK_SECRET_KEY'
 ];
 
-// Check for missing environment variables
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+// Check database configuration (DATABASE_URL preferred, or legacy individual DB_* vars)
+if (!process.env.DATABASE_URL && (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_NAME)) {
+  missingEnvVars.push('DATABASE_URL');
+}
+
 if (missingEnvVars.length > 0) {
   console.error('Error: Missing required environment variables:', missingEnvVars.join(', '));
   process.exit(1);

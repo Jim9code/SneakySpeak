@@ -1,0 +1,54 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: sneaky-backend
+    runtime: node
+    plan: free
+    rootDir: sneaky_backend
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: sneaky-frontend
+          property: host
+      # Set DATABASE_URL to your free cloud MySQL (e.g. from TiDB Cloud / Aiven)
+      - key: DATABASE_URL
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_APP_PASSWORD
+        sync: false
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+
+  # Frontend Web Service
+  - type: web
+    name: sneaky-frontend
+    runtime: node
+    plan: free
+    rootDir: sneaky_frontend
+    buildCommand: npm install && npm run build
+    startCommand: node build
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: sneaky-backend
+          property: host
+      - key: PUBLIC_PAYSTACK_KEY
+        sync: false

@@ -68,7 +68,7 @@ app.get('/api/health', async (req, res) => {
             database: 'connected',
             env: {
                 frontend_url: process.env.FRONTEND_URL ? 'set' : 'missing',
-                db_host: process.env.DB_HOST ? 'set' : 'missing',
+                database_url: (process.env.DATABASE_URL || process.env.DB_HOST) ? 'set' : 'missing',
                 jwt_secret: process.env.JWT_SECRET ? 'set' : 'missing'
             }
         });
