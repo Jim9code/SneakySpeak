@@ -67,38 +67,38 @@
     }
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 p-4 relative overflow-hidden">
-    <!-- Animated background elements -->
+<div class="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
+    <!-- Stealth background glow -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
         <div class="absolute inset-0 bg-grid opacity-5"></div>
-        {#each Array(5) as _, i}
+        {#each Array(4) as _, i}
             <div
-                class="absolute rounded-full bg-gradient-to-r from-gray-700/30 to-gray-600/30 blur-2xl"
+                class="absolute rounded-full bg-gradient-to-r from-purple-950/20 to-neutral-900/30 blur-3xl"
                 style="
-                    width: {200 + i * 50}px;
-                    height: {200 + i * 50}px;
+                    width: {250 + i * 60}px;
+                    height: {250 + i * 60}px;
                     left: {Math.random() * 100}%;
                     top: {Math.random() * 100}%;
-                    animation: float-{i} {15 + i * 2}s infinite ease-in-out;
+                    animation: float-{i} {18 + i * 2}s infinite ease-in-out;
                 "
             />
         {/each}
     </div>
 
-    <div class="max-w-md w-full space-y-6 p-6 sm:p-8 bg-gray-900/90 backdrop-blur-sm rounded-lg border border-gray-800/50 shadow-[0_0_15px_rgba(0,0,0,0.3)] relative z-10">
+    <div class="max-w-md w-full space-y-6 p-6 sm:p-8 bg-neutral-950/95 backdrop-blur-md rounded-2xl border border-neutral-800/80 shadow-[0_0_30px_rgba(0,0,0,0.8)] relative z-10">
         <div class="text-center">
-            <img src="/logo.png" alt="Ahnonimoz" class="w-16 h-16 mx-auto rounded-2xl border border-indigo-500/40 shadow-lg object-cover mb-3" />
-            <h2 class="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-purple-200 to-indigo-100">
+            <img src="/logo.png" alt="Ahnonimoz" class="w-16 h-16 mx-auto rounded-2xl border border-purple-500/40 shadow-lg object-cover mb-3" />
+            <h2 class="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-neutral-100 to-purple-400">
                 Welcome to Ahnonimoz
             </h2>
-            <p class="mt-2 text-center text-sm sm:text-base text-gray-400">
+            <p class="mt-2 text-center text-sm sm:text-base text-neutral-400">
                 {isVerificationStep ? 'Enter the verification code sent to your email' : 'Sign in with your school email'}
             </p>
         </div>
 
         <form class="mt-6 space-y-4 sm:space-y-6" on:submit|preventDefault={handleSubmit}>
             {#if error}
-                <div class="rounded-md bg-red-900/50 border border-red-500/50 p-3 sm:p-4">
+                <div class="rounded-xl bg-red-950/50 border border-red-800/50 p-3 sm:p-4">
                     <div class="text-xs sm:text-sm text-red-200">
                         {error}
                     </div>
@@ -106,14 +106,14 @@
             {/if}
 
             {#if successMessage}
-                <div class="rounded-md bg-green-900/50 border border-green-500/50 p-3 sm:p-4">
-                    <div class="text-xs sm:text-sm text-green-200">
+                <div class="rounded-xl bg-emerald-950/50 border border-emerald-800/50 p-3 sm:p-4">
+                    <div class="text-xs sm:text-sm text-emerald-200">
                         {successMessage}
                     </div>
                 </div>
             {/if}
 
-            <div class="rounded-md shadow-sm -space-y-px">
+            <div class="rounded-xl shadow-sm -space-y-px">
                 {#if !isVerificationStep}
                     <div>
                         <label for="email" class="sr-only">School Email</label>
@@ -123,7 +123,7 @@
                             type="email"
                             required
                             bind:value={email}
-                            class="appearance-none rounded-lg relative block w-full px-3 py-2 sm:py-3 bg-gray-800/50 border border-gray-700/50 placeholder-gray-500 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:z-10 text-sm sm:text-base transition-all duration-200"
+                            class="appearance-none rounded-xl relative block w-full px-3.5 py-2.5 sm:py-3 bg-neutral-900/90 border border-neutral-800 placeholder-neutral-500 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 focus:z-10 text-sm sm:text-base transition-all duration-200"
                             placeholder="your.name@school.edu"
                             disabled={isLoading}
                         />
@@ -141,11 +141,11 @@
                             maxlength="6"
                             bind:value={verificationCode}
                             on:input={handleCodeInput}
-                            class="appearance-none rounded-lg relative block w-full px-3 py-2 sm:py-3 bg-gray-800/50 border border-gray-700/50 placeholder-gray-500 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:z-10 text-center tracking-widest font-mono text-lg sm:text-xl transition-all duration-200"
+                            class="appearance-none rounded-xl relative block w-full px-3.5 py-2.5 sm:py-3 bg-neutral-900/90 border border-neutral-800 placeholder-neutral-500 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 focus:z-10 text-center tracking-widest font-mono text-lg sm:text-xl transition-all duration-200"
                             placeholder="000000"
                             disabled={isLoading}
                         />
-                        <p class="mt-2 text-xs sm:text-sm text-gray-400 text-center">
+                        <p class="mt-2 text-xs sm:text-sm text-neutral-400 text-center">
                             Enter the 6-digit code sent to your email. Check your inbox and spam folder if you don't see it.
                         </p>
                     </div>
@@ -155,7 +155,7 @@
             <div>
                 <button
                     type="submit"
-                    class="group relative w-full flex justify-center py-2 sm:py-3 px-4 border-2 border-indigo-500/50 text-sm sm:text-base font-medium rounded-lg text-white bg-indigo-600/20 hover:bg-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500/50 focus:ring-offset-gray-900 disabled:opacity-50 transition-all duration-200 shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:shadow-[0_0_20px_rgba(99,102,241,0.3)]"
+                    class="group relative w-full flex justify-center py-2.5 sm:py-3 px-4 border border-purple-500/40 text-sm sm:text-base font-semibold rounded-xl text-white bg-purple-600 hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500/50 focus:ring-offset-black disabled:opacity-50 transition-all duration-200 shadow-[0_0_20px_rgba(168,85,247,0.25)] hover:shadow-[0_0_25px_rgba(168,85,247,0.4)]"
                     disabled={isLoading}
                 >
                     {#if isLoading}
@@ -172,7 +172,7 @@
                 <div class="text-center">
                     <button
                         type="button"
-                        class="text-xs sm:text-sm text-indigo-400 hover:text-indigo-300 focus:outline-none focus:underline transition-colors"
+                        class="text-xs sm:text-sm text-purple-400 hover:text-purple-300 focus:outline-none focus:underline transition-colors"
                         on:click={() => {
                             isVerificationStep = false;
                             verificationCode = '';

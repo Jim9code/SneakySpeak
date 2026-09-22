@@ -18,14 +18,14 @@
 
 {#if mounted}
   <div 
-    class="fixed inset-0 bg-[#0F172A] flex items-center justify-center overflow-hidden z-50"
+    class="fixed inset-0 bg-black flex items-center justify-center overflow-hidden z-50"
     out:fade={{ duration: 300 }}
   >
     <!-- Subtle grid background -->
     <div class="absolute inset-0 bg-grid opacity-10"></div>
     
     <!-- Ambient glow rings matching the logo -->
-    <div class="absolute w-72 h-72 rounded-full bg-indigo-600/20 blur-3xl pointer-events-none animate-pulse"></div>
+    <div class="absolute w-72 h-72 rounded-full bg-purple-600/15 blur-3xl pointer-events-none animate-pulse"></div>
 
     <div class="text-center relative z-10 px-4">
       <!-- Centered stealth logo picking up directly from OS splash center -->
@@ -36,14 +36,14 @@
         <img 
           src="/logo.png" 
           alt="Ahnonimoz Logo" 
-          class="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl shadow-2xl border border-indigo-500/40 drop-shadow-glow object-cover" 
+          class="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl shadow-2xl border border-purple-500/40 drop-shadow-glow object-cover" 
         />
       </div>
 
       {#if showLogo}
         <h1 
           in:fly={{ y: 20, duration: 400 }}
-          class="text-4xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-300 to-indigo-200 mb-2 tracking-tight filter drop-shadow-glow"
+          class="text-4xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-neutral-100 to-purple-400 mb-2 tracking-tight filter drop-shadow-glow"
         >
           Ahnonimoz
         </h1>
@@ -52,7 +52,7 @@
       {#if showTagline}
         <p 
           in:fade={{ duration: 300 }}
-          class="text-sm sm:text-base text-gray-300 font-medium tracking-wide"
+          class="text-sm sm:text-base text-neutral-400 font-medium tracking-wide"
         >
           Speak freely, stay anonymous.
         </p>
@@ -64,13 +64,13 @@
 <style>
   .bg-grid {
     background-image: 
-      linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
   .drop-shadow-glow {
-    filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
+    filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.4));
   }
 
   :global(body) {

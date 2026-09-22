@@ -13,8 +13,8 @@
 
 <div class="flex items-center space-x-4">
   <div class="flex items-center">
-    <label for="anonymous-toggle" class="mr-3 text-sm text-gray-600">
-      {isAnonymous ? 'Anonymous' : 'Named'}
+    <label for="anonymous-toggle" class="mr-3 text-sm text-neutral-400 font-medium">
+      {isAnonymous ? '🤫 Anonymous' : '👤 Named'}
     </label>
     <button
       type="button"
@@ -23,9 +23,9 @@
       id="anonymous-toggle"
       on:click={handleToggleAnonymous}
       class={`
-        relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent
-        transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-        ${isAnonymous ? 'bg-indigo-600' : 'bg-gray-200'}
+        relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-neutral-800
+        transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-black
+        ${isAnonymous ? 'bg-purple-600 shadow-[0_0_10px_rgba(168,85,247,0.4)]' : 'bg-neutral-900'}
       `}
     >
       <span

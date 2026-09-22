@@ -60,45 +60,51 @@
     }
 </script>
 
-<div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-4 sm:p-6 m-4">
-        <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">
-            Update Username
-        </h3>
+<div class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50">
+    <div class="bg-neutral-950 rounded-2xl shadow-2xl border border-neutral-800/90 max-w-md w-full p-5 sm:p-6 m-4 text-white">
+        <div class="flex items-center gap-2.5 mb-4">
+            <span class="text-xl">🤫</span>
+            <h3 class="text-base sm:text-lg font-bold text-white">
+                Update Codename
+            </h3>
+        </div>
 
-        <form on:submit|preventDefault={handleSubmit} class="space-y-3 sm:space-y-4">
+        <form on:submit|preventDefault={handleSubmit} class="space-y-4">
             {#if error}
-                <div class="rounded-md bg-red-50 p-2 sm:p-3">
-                    <p class="text-xs sm:text-sm text-red-700">{error}</p>
+                <div class="rounded-xl bg-red-950/60 border border-red-800/60 p-3">
+                    <p class="text-xs sm:text-sm text-red-200">{error}</p>
                 </div>
             {/if}
 
             <div>
-                <label for="username" class="block text-xs sm:text-sm font-medium text-gray-700">
-                    New Username
+                <label for="username" class="block text-xs sm:text-sm font-medium text-neutral-300">
+                    New Codename
                 </label>
                 <input
                     type="text"
                     id="username"
                     bind:value={username}
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs sm:text-sm"
-                    placeholder="Enter new username"
+                    class="mt-1.5 block w-full rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder-neutral-500 shadow-inner focus:border-purple-500 focus:ring-purple-500/50 text-xs sm:text-sm px-3.5 py-2.5"
+                    placeholder="Enter new codename"
                     disabled={loading}
                 />
+                <p class="mt-1.5 text-xs text-neutral-400">
+                    Changing your codename costs <strong class="text-amber-400">{COINS_REQUIRED} coins</strong>.
+                </p>
             </div>
 
-            <div class="flex justify-end gap-2 sm:gap-3">
+            <div class="flex justify-end gap-2 sm:gap-3 pt-2">
                 <button
                     type="button"
-                    class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-orange-500 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                    class="px-3.5 py-2 text-xs sm:text-sm font-semibold text-white bg-amber-600 hover:bg-amber-500 border border-amber-500/40 rounded-xl shadow-md transition-colors"
                     on:click={() => goto('/plans')}
                     disabled={loading}
                 >
-                    Add Coins
+                  + Add Coins
                 </button>
                 <button
                     type="button"
-                    class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                    class="px-3.5 py-2 text-xs sm:text-sm font-medium text-neutral-300 bg-neutral-900 border border-neutral-800 rounded-xl hover:bg-neutral-850 hover:text-white transition-colors"
                     on:click={handleClose}
                     disabled={loading}
                 >
@@ -106,7 +112,7 @@
                 </button>
                 <button
                     type="submit"
-                    class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
+                    class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-purple-600 hover:bg-purple-500 border border-purple-500/40 rounded-xl shadow-[0_0_15px_rgba(168,85,247,0.3)] disabled:opacity-50 transition-all active:scale-95"
                     disabled={loading}
                 >
                     {#if loading}
@@ -115,7 +121,7 @@
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                     {/if}
-                    Update Username
+                    Save Codename
                 </button>
             </div>
         </form>

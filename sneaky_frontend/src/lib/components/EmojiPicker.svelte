@@ -18,13 +18,13 @@
   }
 </script>
 
-<div class="bg-white rounded-lg shadow-xl p-3 border border-gray-200 emoji-picker">
+<div class="bg-neutral-950 rounded-2xl shadow-2xl p-3 border border-neutral-800/90 emoji-picker">
   <div class="grid grid-cols-6 gap-2">
     {#each emojis as emoji}
       <button
         type="button"
         on:click={() => handleEmojiClick(emoji)}
-        class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded transition-colors text-xl"
+        class="w-9 h-9 flex items-center justify-center hover:bg-neutral-900 rounded-xl transition-colors text-xl"
       >
         {emoji}
       </button>

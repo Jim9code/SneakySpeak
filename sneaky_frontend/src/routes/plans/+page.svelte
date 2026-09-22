@@ -228,21 +228,34 @@
   }
 </script>
 
-<div class="min-h-screen bg-gray-50 overflow-y-auto">
+<div class="min-h-screen bg-black text-white overflow-y-auto">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="text-center">
-      <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-        Get More Coins
+      <div class="inline-flex items-center justify-center p-3 bg-neutral-950 rounded-2xl border border-neutral-800 mb-4 shadow-xl">
+        <img src="/logo.png" alt="Ahnonimoz" class="w-12 h-12 rounded-xl object-cover" />
+      </div>
+      <h2 class="text-3xl font-extrabold sm:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-neutral-100 to-purple-400">
+        Get Stealth Coins
       </h2>
-      <p class="mt-4 text-lg text-gray-600">
-        Purchase coins to send anonymous messages and memes
+      <p class="mt-3 text-base sm:text-lg text-neutral-400 max-w-xl mx-auto">
+        Fuel your anonymity. Purchase coins to send encrypted anonymous messages and stealth memes.
       </p>
+
+      <div class="mt-4 flex justify-center">
+        <button 
+          on:click={goToChat}
+          class="inline-flex items-center gap-2 text-sm text-purple-400 hover:text-purple-300 transition-colors font-medium"
+        >
+          ← Return to Chat
+        </button>
+      </div>
+
       {#if error}
-        <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-          <p class="text-sm text-red-600">{error}</p>
+        <div class="mt-6 max-w-md mx-auto p-4 bg-red-950/60 border border-red-800/60 rounded-xl text-left">
+          <p class="text-sm text-red-200">{error}</p>
           {#if error.includes('Authentication')}
             <button
-              class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              class="mt-3 px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-red-500"
               on:click={() => goto('/login')}
             >
               Go to Login
@@ -250,19 +263,20 @@
           {/if}
         </div>
       {/if}
+
       {#if successMessage}
-        <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-          <h3 class="text-lg font-medium text-green-800 mb-2">Success!</h3>
-          <p class="text-green-700">{successMessage}</p>
-          <div class="mt-4 flex justify-center space-x-4">
+        <div class="mt-6 max-w-md mx-auto p-4 bg-emerald-950/60 border border-emerald-800/60 rounded-xl text-center">
+          <h3 class="text-base font-semibold text-emerald-300 mb-1">Payment Successful!</h3>
+          <p class="text-sm text-emerald-200">{successMessage}</p>
+          <div class="mt-4 flex justify-center space-x-3">
             <button
-              class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg transition-colors"
               on:click={() => goto('/chat')}
             >
               Go to Chat
             </button>
             <button
-              class="px-4 py-2 border border-green-600 text-green-600 rounded hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              class="px-4 py-2 border border-neutral-700 bg-neutral-900 text-neutral-300 hover:text-white rounded-lg text-xs font-medium transition-colors"
               on:click={() => successMessage = null}
             >
               Close
@@ -272,41 +286,45 @@
       {/if}
     </div>
 
-    <div class="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:grid-cols-3">
+    <div class="mt-10 space-y-4 sm:mt-14 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:grid-cols-3">
       {#each COIN_PACKAGES as package_}
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200">
+        <div class="bg-neutral-950 border border-neutral-800/90 rounded-2xl shadow-[0_0_25px_rgba(0,0,0,0.7)] divide-y divide-neutral-850 hover:border-purple-500/40 transition-all duration-200 flex flex-col justify-between">
           <div class="p-6">
-            <h3 class="text-lg font-medium text-gray-900">{package_.description}</h3>
-            <p class="mt-4 text-sm text-gray-500">Get {package_.coins} coins</p>
-            <p class="mt-8">
-              <span class="text-4xl font-extrabold text-gray-900">₦{package_.price}</span>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-bold text-white">{package_.description}</h3>
+              {#if package_.savings !== '0%'}
+                <span class="px-2.5 py-0.5 text-xs font-semibold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 rounded-full">
+                  Save {package_.savings}
+                </span>
+              {/if}
+            </div>
+            <p class="mt-2 text-sm text-neutral-400">Get {package_.coins} stealth coins</p>
+            <p class="mt-6">
+              <span class="text-4xl font-extrabold text-white">₦{package_.price}</span>
             </p>
-            {#if package_.savings !== '0%'}
-              <p class="mt-2 text-sm text-green-600">Save {package_.savings}</p>
-            {/if}
             <button
               type="button"
               on:click={() => handlePurchase(package_)}
               disabled={loading}
-              class="mt-8 block w-full bg-indigo-600 border border-transparent rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="mt-6 block w-full bg-purple-600 hover:bg-purple-500 border border-purple-500/40 rounded-xl py-2.5 text-sm font-semibold text-white text-center shadow-[0_0_15px_rgba(168,85,247,0.25)] hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
             >
-              {loading ? 'Processing...' : 'Purchase'}
+              {loading ? 'Processing...' : `Get ${package_.coins} Coins`}
             </button>
           </div>
-          <div class="px-6 pt-6 pb-8">
-            <h4 class="text-sm font-medium text-gray-900">What's included</h4>
-            <ul class="mt-6 space-y-4">
-              <li class="flex space-x-3">
-                <svg class="flex-shrink-0 h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <div class="px-6 pt-5 pb-6 bg-neutral-950/50 rounded-b-2xl">
+            <h4 class="text-xs uppercase tracking-wider font-semibold text-neutral-400">What's included</h4>
+            <ul class="mt-4 space-y-3">
+              <li class="flex items-center space-x-3 text-sm text-neutral-300">
+                <svg class="flex-shrink-0 h-4 w-4 text-purple-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
-                <span class="text-sm text-gray-500">Send {Math.floor(package_.coins/2)} anonymous text messages</span>
+                <span>{Math.floor(package_.coins/2)} anonymous text messages</span>
               </li>
-              <li class="flex space-x-3">
-                <svg class="flex-shrink-0 h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <li class="flex items-center space-x-3 text-sm text-neutral-300">
+                <svg class="flex-shrink-0 h-4 w-4 text-purple-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
-                <span class="text-sm text-gray-500">Send {Math.floor(package_.coins/4)} anonymous memes</span>
+                <span>{Math.floor(package_.coins/4)} anonymous memes</span>
               </li>
             </ul>
           </div>

@@ -19,33 +19,33 @@
   }
 </script>
 
-<div class="min-h-screen bg-gray-100 flex items-center justify-center">
-  <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+<div class="min-h-screen bg-black flex items-center justify-center p-4">
+  <div class="max-w-md w-full bg-neutral-950 rounded-2xl border border-neutral-800/80 shadow-2xl p-8">
     <div class="text-center mb-8">
-      <img src="/logo.png" alt="Ahnonimoz" class="w-16 h-16 mx-auto rounded-2xl border border-indigo-500/40 shadow-lg object-cover mb-3" />
-      <h1 class="text-3xl font-bold text-gray-900">Ahnonimoz</h1>
-      <p class="text-gray-600 mt-2">Connect with your classmates anonymously</p>
+      <img src="/logo.png" alt="Ahnonimoz" class="w-16 h-16 mx-auto rounded-2xl border border-purple-500/40 shadow-lg object-cover mb-3" />
+      <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-neutral-100 to-purple-400">Ahnonimoz</h1>
+      <p class="text-neutral-400 mt-2 text-sm">Connect with your classmates anonymously</p>
     </div>
 
     <form on:submit={handleLogin} class="space-y-6">
       <div>
-        <label for="email" class="block text-sm font-medium text-gray-700">School Email</label>
+        <label for="email" class="block text-sm font-medium text-neutral-300">School Email</label>
         <input
           type="email"
           id="email"
           bind:value={email}
           placeholder="your.email@school.edu"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          class="mt-1 block w-full rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder-neutral-500 shadow-sm focus:border-purple-500 focus:ring-purple-500/50 sm:text-sm px-3.5 py-2.5"
           required
         />
         {#if error}
-          <p class="mt-2 text-sm text-red-600">{error}</p>
+          <p class="mt-2 text-sm text-red-400">{error}</p>
         {/if}
       </div>
 
       <button
         type="submit"
-        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        class="w-full flex justify-center py-2.5 px-4 border border-purple-500/40 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.25)] text-sm font-semibold text-white bg-purple-600 hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 focus:ring-offset-black transition-all active:scale-[0.98]"
       >
         Join Chat
       </button>

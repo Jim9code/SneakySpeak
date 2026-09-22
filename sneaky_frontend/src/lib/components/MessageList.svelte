@@ -232,19 +232,19 @@
   });
 </script>
 
-<div class="h-full flex flex-col overflow-hidden relative">
-  <!-- Animated background elements -->
-  <div class="fixed inset-0 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden pointer-events-none z-0">
+<div class="h-full flex flex-col overflow-hidden relative bg-black">
+  <!-- Subtle dark background elements -->
+  <div class="fixed inset-0 bg-black overflow-hidden pointer-events-none z-0">
     <div class="absolute inset-0 bg-grid opacity-5"></div>
-    {#each Array(5) as _, i}
+    {#each Array(4) as _, i}
       <div
-        class="absolute rounded-full bg-gradient-to-r from-gray-700/30 to-gray-600/30 blur-2xl"
+        class="absolute rounded-full bg-gradient-to-r from-purple-900/10 to-indigo-900/10 blur-3xl"
         style="
-          width: {200 + i * 50}px;
-          height: {200 + i * 50}px;
+          width: {250 + i * 60}px;
+          height: {250 + i * 60}px;
           left: {Math.random() * 100}%;
           top: {Math.random() * 100}%;
-          animation: float-{i} {15 + i * 2}s infinite ease-in-out;
+          animation: float-{i} {18 + i * 2}s infinite ease-in-out;
         "
       />
     {/each}
@@ -256,12 +256,12 @@
     class="flex-1 overflow-y-auto overflow-x-hidden px-4 space-y-3 sm:space-y-4 relative z-10 scroll-smooth pb-24 sm:pb-28"
   >
   {#if messages.length === 0}
-    <div class="flex flex-col items-center justify-center py-8 sm:py-12 text-gray-400">
-      <svg class="w-16 h-16 sm:w-20 sm:h-20 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="flex flex-col items-center justify-center py-8 sm:py-12 text-neutral-500">
+      <svg class="w-16 h-16 sm:w-20 sm:h-20 mb-4 text-neutral-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
       </svg>
-      <p class="text-sm sm:text-base font-medium mb-1 text-gray-300">No messages yet</p>
-      <p class="text-xs sm:text-sm text-gray-500">Start the conversation by sending a message!</p>
+      <p class="text-sm sm:text-base font-semibold mb-1 text-neutral-300">No messages yet</p>
+      <p class="text-xs sm:text-sm text-neutral-500">Start the stealth conversation by sending a message!</p>
     </div>
   {:else}
     {#each messages as message (message.id)}
@@ -278,7 +278,7 @@
           <!-- Reply indicator -->
           {#if activeMessageId === message.id}
             <div 
-              class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 text-indigo-400"
+              class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 text-purple-400"
               transition:fade
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -290,59 +290,59 @@
           <div class="flex-1 flex {isOwnMessage(message) ? 'justify-end' : 'justify-start'} w-full">
             <div class="max-w-[85%] {isOwnMessage(message) ? 'ml-auto' : 'mr-auto'} flex items-start gap-2 sm:gap-3">
               {#if !isOwnMessage(message) && !message.isAnonymous}
-                <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-transparent border-2 border-gray-600/50 shadow-[0_0_10px_rgba(75,85,99,0.2)] flex items-center justify-center text-sm sm:text-base font-medium text-gray-300">
+                <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-neutral-900 border border-neutral-800 shadow-sm flex items-center justify-center text-sm sm:text-base font-bold text-neutral-300">
                   {message.sender[0].toUpperCase()}
-          </div>
+                </div>
               {/if}
               <div class="flex flex-col {isOwnMessage(message) ? 'items-end' : 'items-start'}">
                 <div class="{
                   isOwnMessage(message) 
-                    ? 'bg-transparent border-2 border-indigo-500/50 text-gray-100 shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:border-indigo-400/60' 
+                    ? 'bg-neutral-950 border border-purple-500/50 text-white shadow-[0_0_15px_rgba(168,85,247,0.15)] hover:border-purple-400/80' 
                     : message.isAnonymous
-                      ? 'bg-gray-900 text-white shadow-gray-900/20 border-none'
-                      : 'bg-transparent border-2 border-gray-600/50 text-gray-100 shadow-[0_0_15px_rgba(75,85,99,0.2)] hover:shadow-[0_0_20px_rgba(75,85,99,0.3)] hover:border-gray-500/60'
-                } {message.type === 'meme' ? 'overflow-hidden' : ''} shadow-lg transition-all duration-200 {
+                      ? 'bg-neutral-950 border border-neutral-800/90 text-neutral-200'
+                      : 'bg-neutral-950 border border-neutral-800 text-neutral-200 hover:border-neutral-700'
+                } {message.type === 'meme' ? 'overflow-hidden' : ''} shadow-xl transition-all duration-200 {
                   isOwnMessage(message)
-                    ? 'rounded-l-lg rounded-tr-sm rounded-br-lg'
-                    : 'rounded-r-lg rounded-tl-sm rounded-bl-lg'
-                } p-2.5 sm:p-3">
+                    ? 'rounded-l-2xl rounded-tr-sm rounded-br-2xl'
+                    : 'rounded-r-2xl rounded-tl-sm rounded-bl-2xl'
+                } p-2.5 sm:p-3.5">
                   <div class="flex flex-col gap-1.5">
                     {#if message.isAnonymous}
                       <div class="relative">
                         <div class="flex flex-col gap-1.5">
-                          <span class="text-xs sm:text-sm text-gray-400">
-                            Anonymous
-              </span>
+                          <span class="text-xs text-purple-400 font-semibold flex items-center gap-1">
+                            <span>🤫</span> Anonymous
+                          </span>
                           {#if message.type === 'meme' && message.imageUrl}
                             <div class="space-y-2">
                               <img
                                 src={message.imageUrl}
                                 alt="Shared meme"
-                                class="max-h-48 sm:max-h-64 w-auto rounded-md cursor-zoom-in hover:opacity-90 transition-opacity"
+                                class="max-h-48 sm:max-h-64 w-auto rounded-lg cursor-zoom-in hover:opacity-95 transition-opacity border border-neutral-800"
                               />
                               {#if message.caption}
-                                <p class="text-sm sm:text-base break-words leading-relaxed">{message.caption}</p>
+                                <p class="text-sm sm:text-base break-words leading-relaxed text-neutral-200">{message.caption}</p>
                               {/if}
                             </div>
                           {:else}
-                            <p class="text-sm sm:text-base break-words leading-relaxed">{message.text}</p>
+                            <p class="text-sm sm:text-base break-words leading-relaxed text-neutral-200">{message.text}</p>
                           {/if}
-                          <span class="text-[10px] sm:text-xs text-gray-400 self-end">
-                {formatTime(message.timestamp)}
-              </span>
-            </div>
+                          <span class="text-[10px] text-neutral-500 self-end">
+                            {formatTime(message.timestamp)}
+                          </span>
+                        </div>
 
                         <!-- Anonymous message overlay -->
                         {#if !revealedMessages.has(message.id)}
                           <div 
-                            class="absolute inset-0 bg-gray-900/95 backdrop-blur-sm rounded-lg flex items-center justify-center cursor-pointer group transition-all duration-150"
+                            class="absolute inset-0 bg-black/95 backdrop-blur-md rounded-xl flex items-center justify-center cursor-pointer group transition-all duration-150 border border-neutral-800"
                             on:click|stopPropagation={() => toggleReveal(message.id)}
                             transition:fade={{ duration: 150 }}
                           >
-                            <div class="transform group-hover:scale-110 transition-transform duration-150">
+                            <div class="transform group-hover:scale-110 transition-transform duration-150 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900/80 border border-neutral-700/50">
                               <svg 
                                 xmlns="http://www.w3.org/2000/svg" 
-                                class="h-6 w-6 sm:h-8 sm:w-8 text-gray-300 group-hover:text-gray-100" 
+                                class="h-5 w-5 text-purple-400" 
                                 fill="none" 
                                 viewBox="0 0 24 24" 
                                 stroke="currentColor"
@@ -360,30 +360,31 @@
                                   d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" 
                                 />
                               </svg>
+                              <span class="text-xs font-semibold text-neutral-300">Tap to reveal</span>
                             </div>
                           </div>
                         {/if}
                       </div>
                     {:else}
                       <div class="flex flex-col gap-1.5">
-                        <span class="text-xs sm:text-sm text-gray-400">
+                        <span class="text-xs text-neutral-400 font-medium">
                           {message.sender}
                         </span>
-              {#if message.type === 'meme' && message.imageUrl}
-                <div class="space-y-2">
-                  <img
-                    src={message.imageUrl}
-                    alt="Shared meme"
-                              class="max-h-48 sm:max-h-64 w-auto rounded-md cursor-zoom-in hover:opacity-90 transition-opacity"
-                  />
-                  {#if message.caption}
-                              <p class="text-sm sm:text-base break-words leading-relaxed">{message.caption}</p>
-                  {/if}
-                </div>
-              {:else}
-                          <p class="text-sm sm:text-base break-words leading-relaxed">{message.text}</p>
+                        {#if message.type === 'meme' && message.imageUrl}
+                          <div class="space-y-2">
+                            <img
+                              src={message.imageUrl}
+                              alt="Shared meme"
+                              class="max-h-48 sm:max-h-64 w-auto rounded-lg cursor-zoom-in hover:opacity-95 transition-opacity border border-neutral-800"
+                            />
+                            {#if message.caption}
+                              <p class="text-sm sm:text-base break-words leading-relaxed text-neutral-200">{message.caption}</p>
+                            {/if}
+                          </div>
+                        {:else}
+                          <p class="text-sm sm:text-base break-words leading-relaxed text-neutral-200">{message.text}</p>
                         {/if}
-                        <span class="text-[10px] sm:text-xs text-gray-400 self-end">
+                        <span class="text-[10px] text-neutral-500 self-end">
                           {formatTime(message.timestamp)}
                         </span>
                       </div>
@@ -392,7 +393,7 @@
                 </div>
               </div>
               {#if isOwnMessage(message) && !message.isAnonymous}
-                <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-transparent border-2 border-indigo-500/50 shadow-[0_0_10px_rgba(99,102,241,0.2)] flex items-center justify-center text-sm sm:text-base font-medium text-gray-300">
+                <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-neutral-900 border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.2)] flex items-center justify-center text-sm sm:text-base font-bold text-purple-300">
                   {message.sender[0].toUpperCase()}
                 </div>
               {/if}
@@ -418,7 +419,7 @@
   {#if showScrollButton}
     <button
       type="button"
-      class="fixed bottom-24 sm:bottom-28 right-4 sm:right-6 z-50 p-2.5 sm:p-3 bg-indigo-600/90 hover:bg-indigo-500 text-white rounded-full shadow-lg hover:shadow-xl backdrop-blur-sm transition-all duration-200 group"
+      class="fixed bottom-24 sm:bottom-28 right-4 sm:right-6 z-50 p-2.5 sm:p-3 bg-purple-600/90 hover:bg-purple-500 text-white rounded-full shadow-lg hover:shadow-xl backdrop-blur-sm transition-all duration-200 group"
       on:click={handleScrollButtonClick}
       transition:fade={{ duration: 200 }}
     >

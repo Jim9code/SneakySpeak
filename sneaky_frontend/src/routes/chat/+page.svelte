@@ -189,17 +189,17 @@
     <IntroAnimation onComplete={handleIntroComplete} />
   {:else}
     <div class="flex flex-col h-screen" in:fade={{ duration: 300 }}>
-      <header class="bg-gray-900/90 backdrop-blur-sm border-b border-gray-800 shadow-lg p-3 flex-none sticky top-0 z-50">
+      <header class="bg-black/95 backdrop-blur-md border-b border-neutral-800/80 shadow-2xl p-3 flex-none sticky top-0 z-50">
         <div class="max-w-7xl mx-auto">
           <!-- Top row with logo and logout -->
           <div class="flex items-center justify-between mb-2 sm:mb-0">
             <div class="flex items-center gap-2.5">
-              <img src="/logo.png" alt="Ahnonimoz" class="w-8 h-8 rounded-lg shadow-sm border border-indigo-500/30 object-cover" />
-              <h1 class="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-purple-200 to-indigo-100">Ahnonimoz</h1>
+              <img src="/logo.png" alt="Ahnonimoz" class="w-8 h-8 rounded-lg shadow-md border border-purple-500/40 object-cover" />
+              <h1 class="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-neutral-100 to-purple-400 tracking-wide">Ahnonimoz</h1>
             </div>
             <button
               on:click={handleLogout}
-              class="p-2 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2 focus:ring-offset-gray-900"
+              class="p-2 text-neutral-400 hover:text-red-400 transition-colors rounded-lg hover:bg-neutral-900/80 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:ring-offset-2 focus:ring-offset-black"
               aria-label="Logout"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -211,22 +211,22 @@
           <!-- Bottom row with user info -->
           {#if user}
             <div class="flex flex-wrap items-center gap-2 text-sm">
-              <div class="flex items-center gap-1 text-gray-300 bg-gray-800/50 px-2 py-1 rounded-md border border-gray-700/50">
-                <span class="font-medium text-green-400">🤫:</span>
+              <div class="flex items-center gap-1.5 text-neutral-300 bg-neutral-900/90 px-2.5 py-1 rounded-md border border-neutral-800 shadow-sm">
+                <span class="font-medium text-purple-400">🤫</span>
                 <button
-                  class="font-medium text-indigo-400 hover:text-indigo-300 focus:outline-none focus:underline transition-colors flex items-center gap-1"
+                  class="font-medium text-neutral-200 hover:text-purple-300 focus:outline-none focus:underline transition-colors flex items-center gap-1"
                   on:click={() => showUsernameModal = true}
                 >
                   {user.username}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-neutral-400" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                   </svg>
                 </button>
               </div>
               {#if isAnonymous}
                 <div class="flex items-center">
-                  <span class="bg-indigo-900/50 text-indigo-300 px-2 py-0.5 rounded-full text-xs font-medium border border-indigo-700/30">
-                    Anonymous mode
+                  <span class="bg-purple-950/50 text-purple-300 px-2.5 py-0.5 rounded-full text-xs font-semibold border border-purple-800/60 shadow-[0_0_10px_rgba(147,51,234,0.2)]">
+                    ● Anonymous mode
                   </span>
                 </div>
               {/if}
@@ -235,7 +235,7 @@
         </div>
       </header>
 
-      <main class="flex-1 overflow-hidden bg-gray-800 flex flex-col relative">
+      <main class="flex-1 overflow-hidden bg-black flex flex-col relative">
         <div class="max-w-7xl mx-auto w-full h-full flex flex-col p-2 sm:p-4">
           <div class="flex-1 overflow-y-auto min-h-0 pb-[100px] sm:pb-[120px]">
             <MessageList 
@@ -243,7 +243,7 @@
               on:reply={handleReply}
             />
           </div>
-          <div class="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-sm p-2 sm:p-4 border-t border-gray-800 shadow-lg z-40">
+          <div class="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md p-2 sm:p-4 border-t border-neutral-800/80 shadow-2xl z-40">
             <div class="max-w-7xl mx-auto w-full">
               <MessageInput 
                 {isAnonymous}
