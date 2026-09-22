@@ -194,8 +194,8 @@
           <!-- Top row with logo and logout -->
           <div class="flex items-center justify-between mb-2 sm:mb-0">
             <div class="flex items-center gap-2.5">
-              <img src="/logo.png" alt="SneakySpeak" class="w-8 h-8 rounded-lg shadow-sm border border-indigo-500/30 object-cover" />
-              <h1 class="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 to-indigo-100">SneakySpeak</h1>
+              <img src="/logo.png" alt="Ahnonimoz" class="w-8 h-8 rounded-lg shadow-sm border border-indigo-500/30 object-cover" />
+              <h1 class="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-purple-200 to-indigo-100">Ahnonimoz</h1>
             </div>
             <button
               on:click={handleLogout}

@@ -74,12 +74,12 @@
     <div class="flex items-center gap-3">
       <img 
         src="/logo.png" 
-        alt="SneakySpeak App" 
+        alt="Ahnonimoz App" 
         class="w-12 h-12 rounded-xl shadow-md border border-indigo-500/40 object-cover flex-shrink-0"
       />
       
       <div class="flex-1 min-w-0">
-        <h4 class="text-sm font-semibold text-white truncate">Install SneakySpeak</h4>
+        <h4 class="text-sm font-semibold text-white truncate">Install Ahnonimoz</h4>
         <p class="text-xs text-gray-300 leading-tight">Get the full app experience on your phone</p>
       </div>
 
@@ -117,8 +117,8 @@
     >
       <div class="flex justify-between items-center mb-4">
         <div class="flex items-center gap-2">
-          <img src="/logo.png" alt="SneakySpeak" class="w-8 h-8 rounded-lg" />
-          <h3 class="font-bold text-base">Install on iPhone / iPad</h3>
+          <img src="/logo.png" alt="Ahnonimoz" class="w-8 h-8 rounded-lg" />
+          <h3 class="font-bold text-base">Install Ahnonimoz on iOS</h3>
         </div>
         <button on:click={() => showIOSInstructions = false} class="text-gray-400 hover:text-white">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

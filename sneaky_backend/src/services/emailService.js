@@ -16,7 +16,7 @@ if (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
 const sendVerificationEmail = async (email, code) => {
     const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #4F46E5;">Welcome to SneakySpeak! 🎉</h2>
+            <h2 style="color: #4F46E5;">Welcome to Ahnonimoz! 🎉</h2>
             <p>Your verification code is:</p>
             <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
                 <h1 style="color: #4F46E5; margin: 0; font-size: 32px;">${code}</h1>
@@ -24,20 +24,20 @@ const sendVerificationEmail = async (email, code) => {
             <p>This code will expire in 10 minutes.</p>
             <p>If you didn't request this code, please ignore this email.</p>
             <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 20px 0;">
-            <p style="color: #6B7280; font-size: 14px;">SneakySpeak - School Chat Made Fun</p>
+            <p style="color: #6B7280; font-size: 14px;">Ahnonimoz - Speak Freely, Stay Anonymous</p>
         </div>
     `;
 
     try {
         // Preferred method: Resend HTTP API (works seamlessly on Render free tier)
         if (process.env.RESEND_API_KEY) {
-            const fromEmail = process.env.RESEND_FROM_EMAIL || 'SneakySpeak <noreply@truckbooks.site>';
+            const fromEmail = process.env.RESEND_FROM_EMAIL || 'Ahnonimoz <noreply@truckbooks.site>';
             const response = await axios.post(
                 'https://api.resend.com/emails',
                 {
                     from: fromEmail,
                     to: [email],
-                    subject: 'SneakySpeak Verification Code',
+                    subject: 'Ahnonimoz Verification Code',
                     html: htmlContent
                 },
                 {
@@ -56,7 +56,7 @@ const sendVerificationEmail = async (email, code) => {
             const mailOptions = {
                 from: process.env.EMAIL_USER,
                 to: email,
-                subject: 'SneakySpeak Verification Code',
+                subject: 'Ahnonimoz Verification Code',
                 html: htmlContent
             };
             await transporter.sendMail(mailOptions);

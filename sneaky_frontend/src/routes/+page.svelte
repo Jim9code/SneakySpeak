@@ -22,8 +22,9 @@
 <div class="min-h-screen bg-gray-100 flex items-center justify-center">
   <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
     <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">SneakySpeak</h1>
-      <p class="text-gray-600 mt-2">Connect with your classmates</p>
+      <img src="/logo.png" alt="Ahnonimoz" class="w-16 h-16 mx-auto rounded-2xl border border-indigo-500/40 shadow-lg object-cover mb-3" />
+      <h1 class="text-3xl font-bold text-gray-900">Ahnonimoz</h1>
+      <p class="text-gray-600 mt-2">Connect with your classmates anonymously</p>
     </div>
 
     <form on:submit={handleLogin} class="space-y-6">

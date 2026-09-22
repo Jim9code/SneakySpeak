@@ -86,9 +86,10 @@
     </div>
 
     <div class="max-w-md w-full space-y-6 p-6 sm:p-8 bg-gray-900/90 backdrop-blur-sm rounded-lg border border-gray-800/50 shadow-[0_0_15px_rgba(0,0,0,0.3)] relative z-10">
-        <div>
-            <h2 class="mt-4 text-center text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-indigo-200">
-                Welcome to SneakChat
+        <div class="text-center">
+            <img src="/logo.png" alt="Ahnonimoz" class="w-16 h-16 mx-auto rounded-2xl border border-indigo-500/40 shadow-lg object-cover mb-3" />
+            <h2 class="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-purple-200 to-indigo-100">
+                Welcome to Ahnonimoz
             </h2>
             <p class="mt-2 text-center text-sm sm:text-base text-gray-400">
                 {isVerificationStep ? 'Enter the verification code sent to your email' : 'Sign in with your school email'}
